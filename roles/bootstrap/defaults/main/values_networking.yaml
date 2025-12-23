@@ -69,12 +69,13 @@ traefik_helm_values:
 
   providers:
     kubernetesCRD:
-      enabled: false
+      enabled: true
+      allowCrossNamespace: true
+      allowExternalNameServices: true
     kubernetesIngress:
       enabled: false
     kubernetesGateway:
-      enabled: true
-      experimentalChannel: false
+      enabled: false
 
   ingressClass:
     enabled: false
@@ -89,22 +90,6 @@ traefik_helm_values:
   ingressRoute:
     dashboard:
       enabled: false
-
-  gateway:
-    listeners:
-      web:
-        port: 80
-        protocol: HTTP
-        namespacePolicy:
-          from: All
-      websecure:
-        port: 443
-        protocol: HTTPS
-        namespacePolicy:
-          from: All
-        certificateRefs:
-          - name: "{{ ingress_hostname }}-cert"
-            namespace: security
 
   logs:
     general:
@@ -138,68 +123,37 @@ traefik_helm_values:
         enabled: true
 
   extraObjects:
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
       metadata:
         name: traefik-web-ui
-        annotations:
-          gethomepage.dev/enabled: "true"
-          gethomepage.dev/name: "Traefik"
-          gethomepage.dev/href: "https://system-traefik.{{ ingress_hostname }}"
-          gethomepage.dev/group: "Infra"
-          gethomepage.dev/icon: "si-traefikproxy"
-          gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/name: "Traefik"
+        gethomepage.dev/href: "https://system-traefik.{{ gateway_hostname }}/dashboard/"
+        gethomepage.dev/group: "Infra"
+        gethomepage.dev/icon: "si-traefikproxy"
+        gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
       spec:
-        parentRefs:
-          - name: traefik-gateway
-            namespace: kube-system
-        hostnames:
-          - system-traefik.{{ ingress_hostname }}
-        rules:
-          - matches:
-              - path:
-                type: PathPrefix
-                value: /api/
-              - path:
-                type: PathPrefix
-                value: /dashboard/
-            backendRefs:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`system-traefik.{{ gateway_hostname }}`) && (PathPrefix(`/api/`) || PathPrefix(`/dashboard/`))
+            kind: Rule
+            services:
               - name: traefik
                 port: 39000
-          # - matches:
-          #     - path:
-          #       type: PathPrefix
-          #       value: /oauth2/
-          #   backendRefs:
-          #     - name: oauth2-proxy
-          #       namespace: security
-          #       port: 80
-    - apiVersion: gateway.networking.k8s.io/v1beta1
-      kind: ReferenceGrant
-      metadata:
-        name: traefik-gateway-cert-access
-        namespace: security
-      spec:
-        from:
-          - group: gateway.networking.k8s.io
-            kind: Gateway
-            namespace: kube-system
-        to:
-          - group: ""
-            kind: Secret
-    - apiVersion: gateway.networking.k8s.io/v1beta1
-      kind: ReferenceGrant
-      metadata:
-        name: traefik-gateway-http-backendref
-        namespace: security
-      spec:
-        from:
-          - group: gateway.networking.k8s.io
-            kind: HTTPRoute
-            namespace: kube-system
-        to:
-          - group: ""
-            kind: Service
+            middlewares:
+              - name: oauth2-proxy-auth
+                namespace: security
+          - match: Host(`system-traefik.{{ gateway_hostname }}`) && PathPrefix(`/oauth2/`)
+            kind: Rule
+            services:
+              - name: oauth2-proxy
+                namespace: security
+                port: 80
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
 
 external_dns_secret_name:
 external_dns_secret_data:

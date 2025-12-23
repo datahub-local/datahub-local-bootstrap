@@ -14,7 +14,7 @@ argocd_helm_secrets:
 argocd_helm_values:
   # custom values from https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
   global:
-    domain: "automation-argo-cd.{{ ingress_hostname }}"
+    domain: "automation-argo-cd.{{ gateway_hostname }}"
     logging:
       level: "info"
   configs:
@@ -27,7 +27,7 @@ argocd_helm_values:
       admin.enabled: "{{ not (security_enabled | lower == 'true') }}"
       exec.enabled: true
       users.anonymous.enabled: "{{ not (security_enabled | lower == 'true') }}"
-      url: "https://automation-argo-cd.{{ ingress_hostname }}"
+      url: "https://automation-argo-cd.{{ gateway_hostname }}"
       resource.exclusions: |
         - apiGroups:
           - "velero.io"
@@ -41,7 +41,7 @@ argocd_helm_values:
             id: oidc
             name: IAM
             config:
-              issuer: https://security-dex.{{ ingress_hostname }}/dex
+              issuer: https://security-dex.{{ gateway_hostname }}/dex
               clientID: argo-cd
               clientSecret: $security_github_client_secret
       resource.customizations: |
@@ -159,15 +159,11 @@ argocd_helm_values:
       enabled: "{{ enable_service_monitors }}"
       serviceMonitor:
         enabled: "{{ enable_service_monitors }}"
-    httproute:
-      enabled: true
-      parentRefs:
-        - name: traefik-gateway
-          namespace: kube-system
-      hostname: "automation-argo-cd.{{ ingress_hostname }}"
-      path: /
-      tls: false
-
+  extraObjects:
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: argo-cd-argocd-server
       annotations:
         gethomepage.dev/enabled: "true"
         gethomepage.dev/name: "Argo CD"
@@ -175,7 +171,17 @@ argocd_helm_values:
         gethomepage.dev/description: "Declarative Continuous Deployment for Kubernetes"
         gethomepage.dev/group: "Automation"
         gethomepage.dev/icon: "sh-argo-cd"
-  extraObjects:
+      spec:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`automation-argo-cd.{{ gateway_hostname }}`)
+            kind: Rule
+            services:
+              - name: argo-cd-argocd-server
+                port: 80
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
     - apiVersion: v1
       kind: Secret
       metadata:

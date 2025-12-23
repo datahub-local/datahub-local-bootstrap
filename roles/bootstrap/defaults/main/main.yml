@@ -1,4 +1,4 @@
 ---
 helm_force_update: true
 
-ingress_hostname: ""
+gateway_hostname: ""

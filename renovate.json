@@ -54,7 +54,7 @@
       "customType": "jsonata",
       "fileFormat": "yaml",
       "managerFilePatterns": [
-        "/(^|/)roles/bootstrap/defaults/_version.yaml$/"
+        "/(^|/)roles/bootstrap/defaults/main/_version.yaml$/"
       ],
       "matchStrings": [
         "$each(helm_chart_version, function($v, $k) {{'depName':$k, 'packageName': ($contains($v.repository, 'oci://'))?($replace($v.repository, 'oci://', '') & '/' & $k):$k, 'datasource': ($contains($v.repository, 'oci://'))?'docker':'helm', 'currentValue': $v.version, 'registryUrl': ($contains($v.repository, 'oci://'))?'':$v.repository}})"

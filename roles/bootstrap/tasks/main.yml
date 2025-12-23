@@ -2,7 +2,7 @@
 # - name: Display all variables/facts known for a host
 #   tags: always
 #   debug:
-#     msg: "{{ argocd_namespaces }}"
+#     msg: "{{ traefik_helm_values }}"
 
 # - fail:
 #   tags: always

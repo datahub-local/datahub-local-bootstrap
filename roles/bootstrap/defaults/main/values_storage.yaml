@@ -25,21 +25,29 @@ longhorn_helm_values:
   metrics:
     serviceMonitor:
       enabled: "{{ enable_service_monitors }}"
-  httproute:
-    enabled: true
-    parentRefs:
-      - name: traefik-gateway
-        namespace: kube-system
-    hostnames:
-      - "system-longhorn.{{ ingress_hostname }}"
-    path: /
-    annotations:
-      gethomepage.dev/enabled: "true"
-      gethomepage.dev/name: "Longhorn"
-      gethomepage.dev/pod-selector: "app=longhorn-ui"
-      gethomepage.dev/description: "Cloud-Native distributed storage built on and for Kubernetes"
-      gethomepage.dev/group: "System"
-      gethomepage.dev/icon: "sh-rancher-longhorn-light"
+  extraObjects:
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: longhorn-ui
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/name: "Longhorn"
+        gethomepage.dev/pod-selector: "app=longhorn-ui"
+        gethomepage.dev/description: "Cloud-Native distributed storage built on and for Kubernetes"
+        gethomepage.dev/group: "System"
+        gethomepage.dev/icon: "sh-rancher-longhorn-light"
+      spec:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`system-longhorn.{{ gateway_hostname }}`)
+            kind: Rule
+            services:
+              - name: longhorn-frontend
+                port: 80
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
 
 snapshot_controller: {}
 

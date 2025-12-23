@@ -32,7 +32,7 @@ security_dex_helm_values_default_clients: |
   - id: argo-cd
     name: "Argo CD"
     redirectURIs:
-      - "https://automation-argo-cd.{{ ingress_hostname }}/api/dex/callback"
+      - "https://automation-argo-cd.{{ gateway_hostname }}/api/dex/callback"
     secret: "{{ security_github_client_secret }}"
 security_dex_extra_clients: []
 security_dex_helm_values:
@@ -43,7 +43,7 @@ security_dex_helm_values:
       config:
         inCluster: true
 
-    issuer: https://security-dex.{{ ingress_hostname }}/dex
+    issuer: https://security-dex.{{ gateway_hostname }}/dex
     scopes:
       - email
       - groups
@@ -72,7 +72,7 @@ security_dex_helm_values:
         config:
           clientID: "{{ security_github_client_id }}"
           clientSecret: "{{ security_github_client_secret }}"
-          redirectURI: https://security-dex.{{ ingress_hostname }}/dex/callback
+          redirectURI: https://security-dex.{{ gateway_hostname }}/dex/callback
           orgs: "{{ security_github_organizations_mapped | from_yaml }}"
 
   serviceMonitor:
@@ -92,8 +92,8 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
   extraArgs:
     provider: "oidc"
     provider-display-name: "Github"
-    oidc-issuer-url: https://security-dex.{{ ingress_hostname }}/dex
-    redirect-url: https://security-oauth2.{{ ingress_hostname }}/oauth2/callback
+    oidc-issuer-url: https://security-dex.{{ gateway_hostname }}/dex
+    redirect-url: https://security-oauth2.{{ gateway_hostname }}/oauth2/callback
     skip-provider-button: false
     approval-prompt: auto
 
@@ -102,11 +102,11 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
     show-debug-on-error: true
 
     cookie-csrf-expire: "1h"
-    cookie-domain: ".{{ ingress_hostname }}"
+    cookie-domain: ".{{ gateway_hostname }}"
     cookie-expire: "168h"
     cookie-samesite: "lax"
     cookie-secure: true
-    whitelist-domain: ".{{ ingress_hostname }}"
+    whitelist-domain: ".{{ gateway_hostname }}"
 
     pass-access-token: true
     pass-authorization-header: true
@@ -122,21 +122,6 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
 
     display-htpasswd-form: false
 
-  gatewayApi:
-    enabled: true
-    gatewayRef:
-      name: traefik-gateway
-      namespace: kube-system
-    rules:
-      - matches:
-          - path:
-              type: PathPrefix
-              value: /
-    hostnames:
-      - "{{ ingress_hostname }}"
-      - "*.{{ ingress_hostname }}"
-      - "security-oauth2.{{ ingress_hostname }}"
-
   extraObjects:
     - apiVersion: traefik.io/v1alpha1
       kind: Middleware
@@ -151,7 +136,7 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
           accessControlAllowHeaders:
             - "*"
           accessControlAllowOriginListRegex:
-            - "{{ ingress_hostname }}"
+            - "{{ gateway_hostname }}"
           accessControlMaxAge: 100
           addVaryHeader: true
     - apiVersion: traefik.io/v1alpha1
@@ -173,7 +158,7 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
         name: oauth2-proxy-auth-forward
       spec:
         forwardAuth:
-          address: https://security-oauth2.{{ ingress_hostname }}/oauth2/auth
+          address: https://security-oauth2.{{ gateway_hostname }}/oauth2/auth
           trustForwardHeader: true
           authResponseHeadersRegex: ^X-
     - apiVersion: traefik.io/v1alpha1
@@ -197,44 +182,41 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
       spec:
         chain:
           middlewares:
+            - name: oauth2-proxy-cors-headers
             - name: oauth2-proxy-headers
             - name: oauth2-proxy-errors
             - name: oauth2-proxy-auth-forward
-    # DEX HTTPRoute because dex helm chart does not support Gateway API yet
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
       metadata:
-      name: traefik-web-ui
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/name: "Traefik"
-        gethomepage.dev/href: "https://system-traefik.{{ ingress_hostname }}"
-        gethomepage.dev/group: "Infra"
-        gethomepage.dev/icon: "si-traefikproxy"
-        gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+        name: oauth2-proxy
       spec:
-      parentRefs:
-        - name: traefik-gateway
-          namespace: kube-system
-      hostnames:
-        - system-traefik.{{ ingress_hostname }}
-      rules:
-        - matches:
-            - path:
-              type: PathPrefix
-              value: /
-          backendRefs:
-            - name: api@internal
-              kind: TraefikService
-              port: 9000
-        - matches:
-            - path:
-              type: PathPrefix
-              value: /oauth2/
-          backendRefs:
-            - name: oauth2-proxy
-              namespace: security
-              port: 80
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`security-oauth2.{{ gateway_hostname }}`)
+            kind: Rule
+            services:
+              - name: oauth2-proxy
+                port: 80
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
+    # DEX IngressRoute because dex helm chart does not support extra objects
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: dex
+      spec:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`security-dex.{{ gateway_hostname }}`)
+            kind: Rule
+            services:
+              - name: dex
+                port: 5556
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
 
 cert_manager_cluster_issuer_spec:
   selfSigned: {}
@@ -276,15 +258,15 @@ cert_manager_helm_values:
       apiVersion: cert-manager.io/v1
       kind: Certificate
       metadata:
-        name: "{{ ingress_hostname }}-cert"
+        name: "{{ gateway_hostname }}-cert"
       spec:
-        secretName: "{{ ingress_hostname }}-cert"
+        secretName: "{{ gateway_hostname }}-cert"
         issuerRef:
           name: default-cluster-issuer
           kind: ClusterIssuer
         dnsNames:
-          - "{{ ingress_hostname }}"
-          - "*.{{ ingress_hostname }}"
+          - "{{ gateway_hostname }}"
+          - "*.{{ gateway_hostname }}"
         secretTemplate:
           annotations:
             reflector.v1.k8s.emberstack.com/reflection-allowed: "true"

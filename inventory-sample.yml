@@ -88,7 +88,8 @@ bootstrap:
     # Bootstrap vars
     ###############################
     # k3s_context_name: k3s-ansible
-    # ingress_hostname: "example.com" # hostname used in all the Ingress resources
+    # gateway_hostname: "example.com" # hostname used in all the Gateway resources
+    # gateway_namespaces: ["ns1", "ns2"] # namespaces where Gateway resources could be created
     # enable_service_monitors: "false" # True if service monitors must be created. Must be false until an appropiate Prometheus is installed
 
     # security_enabled: false # false if we want to enable Traefik Oauth authentication.
@@ -108,7 +109,7 @@ bootstrap:
     #   - id: some-app
     #     name: "Some App"
     #     redirectURIs:
-    #       - "https://some-app.{{ingress_hostname}}/api/dex/callback"
+    #       - "https://some-app.{{gateway_hostname}}/api/dex/callback"
     #   secret: "{{ some_secret_var }}"
 
     # # See https://cert-manager.io/docs/configuration/acme/ for how to configure cert-manager
