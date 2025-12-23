@@ -88,8 +88,7 @@ bootstrap:
     # Bootstrap vars
     ###############################
     # k3s_context_name: k3s-ansible
-    # gateway_hostname: "example.com" # hostname used in all the Gateway resources
-    # gateway_namespaces: ["ns1", "ns2"] # namespaces where Gateway resources could be created
+    # gateway_hostname: "example.com" # hostname used in all resources accessed externally. Change it to your domain.
     # enable_service_monitors: "false" # True if service monitors must be created. Must be false until an appropiate Prometheus is installed
 
     # security_enabled: false # false if we want to enable Traefik Oauth authentication.

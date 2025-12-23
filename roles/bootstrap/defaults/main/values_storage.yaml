@@ -54,6 +54,7 @@ snapshot_controller: {}
 nfs_external_provisioner_enabled: false
 nfs_external_provisioner_path: "/"
 nfs_external_provisioner_helm_values:
+  # https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/blob/master/charts/nfs-subdir-external-provisioner/values.yaml
   storageClass:
     name: nfs
   nfs:

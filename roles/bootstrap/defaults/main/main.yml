@@ -1,4 +1,4 @@
 ---
-helm_force_update: true
+helm_force_update: false
 
 gateway_hostname: ""
