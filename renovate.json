@@ -3,7 +3,9 @@
   "extends": [
     ":semanticCommits"
   ],
-  "schedule": ["* * * * 0,6"],
+  "schedule": [
+    "* * * * 0,6"
+  ],
   "automerge": false,
   "prCreation": "immediate",
   "automergeStrategy": "squash",
@@ -17,7 +19,8 @@
   "packageRules": [
     {
       "matchDatasources": [
-        "helm","docker"
+        "helm",
+        "docker"
       ],
       "matchUpdateTypes": [
         "major",
@@ -44,12 +47,6 @@
       },
       "groupName": "all non-major Python dependencies ({{ lookup (split (lowercase releaseTimestamp) 't') 0 }})",
       "groupSlug": "all-minor-patch-python"
-    },
-    {
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false
     }
   ],
   "customManagers": [
@@ -57,7 +54,7 @@
       "customType": "jsonata",
       "fileFormat": "yaml",
       "managerFilePatterns": [
-        "/(^|/)roles/bootstrap/defaults/_version.yaml$/"
+        "/(^|/)roles/bootstrap/defaults/main/_version.yaml$/"
       ],
       "matchStrings": [
         "$each(helm_chart_version, function($v, $k) {{'depName':$k, 'packageName': ($contains($v.repository, 'oci://'))?($replace($v.repository, 'oci://', '') & '/' & $k):$k, 'datasource': ($contains($v.repository, 'oci://'))?'docker':'helm', 'currentValue': $v.version, 'registryUrl': ($contains($v.repository, 'oci://'))?'':$v.repository}})"

@@ -1,0 +1,63 @@
+longhorn_enabled: false
+longhorn_enabled_only_agent: false
+longhorn_replica_count: 2
+longhorn_data_dir: /var/lib/longhorn/
+longhorn_helm_values:
+  # https://github.com/longhorn/longhorn/blob/master/chart/values.yaml
+  global:
+    nodeSelector:
+      "longhorn.io/enabled": "true"
+
+    tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+  defaultSettings:
+    createDefaultDiskLabeledNodes: true
+    defaultDataPath: "{{ longhorn_data_dir }}"
+    storageMinimalAvailablePercentage: "{{ longhorn_storage_minimal_available_percentage | default(25) }}"
+    storageReservedPercentageForDefaultDisk: "{{ longhorn_storage_reserved_percentage_for_default_disk | default(30) }}"
+  persistence:
+    defaultClassReplicaCount: "{{ longhorn_replica_count }}"
+    defaultNodeSelector:
+      enable: "{{ longhorn_enabled_only_agent }}"
+      selector: "AGENT_NODE"
+  metrics:
+    serviceMonitor:
+      enabled: "{{ enable_service_monitors }}"
+  extraObjects:
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: longhorn-ui
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/name: "Longhorn"
+        gethomepage.dev/pod-selector: "app=longhorn-ui"
+        gethomepage.dev/description: "Cloud-Native distributed storage built on and for Kubernetes"
+        gethomepage.dev/group: "System"
+        gethomepage.dev/icon: "sh-rancher-longhorn-light"
+      spec:
+        entryPoints:
+          - websecure
+        routes:
+          - match: Host(`system-longhorn.{{ gateway_hostname }}`)
+            kind: Rule
+            services:
+              - name: longhorn-frontend
+                port: 80
+        tls:
+          secretName: "{{ gateway_hostname }}-cert"
+
+snapshot_controller: {}
+
+nfs_external_provisioner_enabled: false
+nfs_external_provisioner_path: "/"
+nfs_external_provisioner_helm_values:
+  # https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/blob/master/charts/nfs-subdir-external-provisioner/values.yaml
+  storageClass:
+    name: nfs
+  nfs:
+    server: "{{ nfs_external_provisioner_server }}"
+    path: "{{ nfs_external_provisioner_path }}"
+    mountOptions: ["vers=4"]
