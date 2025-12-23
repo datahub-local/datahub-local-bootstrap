@@ -1,0 +1,206 @@
+traefik_helm_values:
+  # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
+
+  deployment:
+    kind: DaemonSet
+
+  service:
+    type: ClusterIP
+    externalTrafficPolicy: "Local"
+
+  hostNetwork: true
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - datahublocal-orpi-1
+                  - datahublocal-orpi-2
+                  - datahublocal-orpi-3
+
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "500m"
+    limits:
+      memory: "512Mi"
+
+  securityContext:
+    capabilities:
+      drop: [ALL]
+      add: [NET_BIND_SERVICE]
+    readOnlyRootFilesystem: true
+    runAsGroup: 0
+    runAsNonRoot: false
+    runAsUser: 0
+  podSecurityContext:
+    fsGroup: 0
+
+  ports:
+    traefik:
+      port: 39000
+      expose:
+        default: true
+      exposedPort: 39000
+    web:
+      port: 80
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+    websecure:
+      port: 443
+    metrics:
+      port: 39100
+      expose:
+        default: true
+      exposedPort: 39100
+
+  providers:
+    kubernetesCRD:
+      enabled: false
+    kubernetesIngress:
+      enabled: false
+    kubernetesGateway:
+      enabled: true
+      experimentalChannel: false
+
+  ingressClass:
+    enabled: false
+
+  api:
+    dashboard: true
+    insecure: true
+
+  additionalArguments:
+    - "--api.insecure=true"
+
+  ingressRoute:
+    dashboard:
+      enabled: false
+
+  gateway:
+    listeners:
+      web:
+        port: 80
+        protocol: HTTP
+        namespacePolicy:
+          from: All
+      websecure:
+        port: 443
+        protocol: HTTPS
+        namespacePolicy:
+          from: All
+        certificateRefs:
+          - name: "{{ ingress_hostname }}-cert"
+            namespace: security
+
+  logs:
+    general:
+      level: INFO
+    access:
+      enabled: true
+      format: json
+      # filters:
+      #   statuscodes: "200,300-302"
+      #   retryattempts: true
+      #   minDuration: "10ms"
+      fields:
+        defaultMode: keep
+        names:
+          ClientUsername: drop
+        headers:
+          defaultMode: keep
+          names:
+            User-Agent: redact
+            Authorization: drop
+
+  metrics:
+    prometheus:
+      entryPoint: metrics
+      service:
+        enabled: true
+      addEntryPointsLabels: true
+      addServicesLabels: true
+      disableAPICheck: true
+      serviceMonitor:
+        enabled: true
+
+  extraObjects:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: traefik-web-ui
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Traefik"
+          gethomepage.dev/href: "https://system-traefik.{{ ingress_hostname }}"
+          gethomepage.dev/group: "Infra"
+          gethomepage.dev/icon: "si-traefikproxy"
+          gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+      spec:
+        parentRefs:
+          - name: traefik-gateway
+            namespace: kube-system
+        hostnames:
+          - system-traefik.{{ ingress_hostname }}
+        rules:
+          - matches:
+              - path:
+                type: PathPrefix
+                value: /api/
+              - path:
+                type: PathPrefix
+                value: /dashboard/
+            backendRefs:
+              - name: traefik
+                port: 39000
+          # - matches:
+          #     - path:
+          #       type: PathPrefix
+          #       value: /oauth2/
+          #   backendRefs:
+          #     - name: oauth2-proxy
+          #       namespace: security
+          #       port: 80
+    - apiVersion: gateway.networking.k8s.io/v1beta1
+      kind: ReferenceGrant
+      metadata:
+        name: traefik-gateway-cert-access
+        namespace: security
+      spec:
+        from:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            namespace: kube-system
+        to:
+          - group: ""
+            kind: Secret
+    - apiVersion: gateway.networking.k8s.io/v1beta1
+      kind: ReferenceGrant
+      metadata:
+        name: traefik-gateway-http-backendref
+        namespace: security
+      spec:
+        from:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            namespace: kube-system
+        to:
+          - group: ""
+            kind: Service
+
+external_dns_secret_name:
+external_dns_secret_data:
+external_dns_helm_values:

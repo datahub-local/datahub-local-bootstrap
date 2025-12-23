@@ -79,13 +79,7 @@ security_dex_helm_values:
     enabled: "{{ enable_service_monitors }}"
 
   ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: "security-dex.{{ ingress_hostname }}"
-        paths:
-          - path: /
-            pathType: Prefix
+    enabled: false
 
 security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/blob/main/helm/oauth2-proxy/values.yaml
   fullnameOverride: oauth2-proxy
@@ -131,8 +125,8 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
   gatewayApi:
     enabled: true
     gatewayRef:
-      name: "traefik"
-      namespace: "system"
+      name: traefik-gateway
+      namespace: kube-system
     rules:
       - matches:
           - path:
@@ -221,7 +215,7 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
       spec:
       parentRefs:
         - name: traefik-gateway
-          namespace: traefik
+          namespace: kube-system
       hostnames:
         - system-traefik.{{ ingress_hostname }}
       rules:
@@ -246,3 +240,52 @@ cert_manager_cluster_issuer_spec:
   selfSigned: {}
 cert_manager_cluster_issuer_secret_name:
 cert_manager_cluster_issuer_secret_data:
+cert_manager_helm_values:
+  # https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yamlingressShim:
+  installCRDs: true
+  ingressShim:
+    defaultIssuerName: "cluster-issuer"
+    defaultIssuerKind: "ClusterIssuer"
+
+  extraObjects:
+    - |
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: private-cluster-issuer
+      spec:
+        selfSigned: {}
+    - |
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: default-cluster-issuer
+      spec:
+        {{cert_manager_cluster_issuer_spec | to_nice_yaml | trim | indent(8)}}
+    #{% if cert_manager_cluster_issuer_secret_name %}
+    - |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ cert_manager_cluster_issuer_secret_name }}"
+      type: Opaque
+      stringData:
+        {{cert_manager_cluster_issuer_secret_data | to_nice_yaml | trim | indent(8)}}
+    #{% endif %}
+    - |
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: "{{ ingress_hostname }}-cert"
+      spec:
+        secretName: "{{ ingress_hostname }}-cert"
+        issuerRef:
+          name: default-cluster-issuer
+          kind: ClusterIssuer
+        dnsNames:
+          - "{{ ingress_hostname }}"
+          - "*.{{ ingress_hostname }}"
+        secretTemplate:
+          annotations:
+            reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+            reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"

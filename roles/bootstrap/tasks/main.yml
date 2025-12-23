@@ -1,21 +1,17 @@
 ---
 # - name: Display all variables/facts known for a host
+#   tags: always
 #   debug:
-#     msg: "{{ security_dex_helm_values }}"
-#   tags: debug_info
+#     msg: "{{ argocd_namespaces }}"
 
 # - fail:
+#   tags: always
 
 - name: K8s - Set context
   tags: always
   ansible.builtin.shell: |
     kubectl config use-context {{ k3s_context_name }}
   changed_when: true
-
-- name: Include _version.yaml
-  tags: always
-  ansible.builtin.include_vars:
-    file: defaults/_version.yaml
 
 - name: Install Helm repositories
   tags: always
@@ -35,17 +31,8 @@
         create_namespace: true
         force: "{{ helm_force_update }}"
         release_namespace: security
-        values:
-          ingressShim:
-            defaultIssuerName: "cluster-issuer"
-            defaultIssuerKind: "ClusterIssuer"
-
-          installCRDs: true
+        values: "{{ cert_manager_helm_values }}"
         context: "{{ k3s_context_name }}"
-    - name: cert-manager - Create resources
-      kubernetes.core.k8s:
-        namespace: security
-        definition: "{{ lookup('ansible.builtin.template', 'cert_manager_resources.yaml.j2', template_vars = {}) | from_yaml_all }}"
         state: present
   tags: only-cert-manager
 

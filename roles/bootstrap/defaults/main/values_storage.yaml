@@ -25,14 +25,14 @@ longhorn_helm_values:
   metrics:
     serviceMonitor:
       enabled: "{{ enable_service_monitors }}"
-  ingress:
+  httproute:
     enabled: true
-    ingressClassName: "nginx"
-    host: "system-longhorn.{{ ingress_hostname }}"
+    parentRefs:
+      - name: traefik-gateway
+        namespace: kube-system
+    hostnames:
+      - "system-longhorn.{{ ingress_hostname }}"
     path: /
-    pathType: Prefix
-    tls: false
-    secureBackends: false
     annotations:
       gethomepage.dev/enabled: "true"
       gethomepage.dev/name: "Longhorn"
