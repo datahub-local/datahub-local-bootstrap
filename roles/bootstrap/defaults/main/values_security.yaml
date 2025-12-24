@@ -198,7 +198,7 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
             kind: Rule
             services:
               - name: oauth2-proxy
-                port: 80
+                port: http
         tls:
           secretName: "{{ gateway_hostname }}-cert"
     # DEX IngressRoute because dex helm chart does not support extra objects

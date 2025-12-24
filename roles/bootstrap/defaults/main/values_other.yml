@@ -179,7 +179,7 @@ argocd_helm_values:
             kind: Rule
             services:
               - name: argo-cd-argocd-server
-                port: 80
+                port: http
         tls:
           secretName: "{{ gateway_hostname }}-cert"
     - apiVersion: v1

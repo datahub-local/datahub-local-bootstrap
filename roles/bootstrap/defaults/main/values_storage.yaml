@@ -45,7 +45,16 @@ longhorn_helm_values:
             kind: Rule
             services:
               - name: longhorn-frontend
-                port: 80
+                port: http
+            middlewares:
+              - name: oauth2-proxy-auth
+                namespace: security
+          - match: Host(`system-longhorn.{{ gateway_hostname }}`) && PathPrefix(`/oauth2/`)
+            kind: Rule
+            services:
+              - name: oauth2-proxy
+                namespace: security
+                port: http
         tls:
           secretName: "{{ gateway_hostname }}-cert"
 

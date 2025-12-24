@@ -151,7 +151,7 @@ traefik_helm_values:
             services:
               - name: oauth2-proxy
                 namespace: security
-                port: 80
+                port: http
         tls:
           secretName: "{{ gateway_hostname }}-cert"
 
