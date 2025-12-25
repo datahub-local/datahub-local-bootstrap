@@ -33,7 +33,6 @@
         release_namespace: security
         values: "{{ cert_manager_helm_values }}"
         context: "{{ k3s_context_name }}"
-        state: present
   tags: only-cert-manager
 
 - name: external-dns

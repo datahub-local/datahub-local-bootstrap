@@ -30,13 +30,13 @@ longhorn_helm_values:
       kind: IngressRoute
       metadata:
         name: longhorn-ui
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/name: "Longhorn"
-        gethomepage.dev/pod-selector: "app=longhorn-ui"
-        gethomepage.dev/description: "Cloud-Native distributed storage built on and for Kubernetes"
-        gethomepage.dev/group: "System"
-        gethomepage.dev/icon: "sh-rancher-longhorn-light"
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Longhorn"
+          gethomepage.dev/pod-selector: "app=longhorn-ui"
+          gethomepage.dev/group: "System"
+          gethomepage.dev/icon: "sh-rancher-longhorn-light"
+          gethomepage.dev/href: "https://system-longhorn.{{ gateway_hostname }}"
       spec:
         entryPoints:
           - websecure

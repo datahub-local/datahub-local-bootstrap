@@ -127,13 +127,13 @@ traefik_helm_values:
       kind: IngressRoute
       metadata:
         name: traefik-web-ui
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/name: "Traefik"
-        gethomepage.dev/href: "https://system-traefik.{{ gateway_hostname }}/dashboard/"
-        gethomepage.dev/group: "Infra"
-        gethomepage.dev/icon: "si-traefikproxy"
-        gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Traefik"
+          gethomepage.dev/group: "System"
+          gethomepage.dev/icon: "si-traefikproxy"
+          gethomepage.dev/pod-selector: "app.kubernetes.io/name=traefik"
+          gethomepage.dev/href: "https://system-traefik.{{ gateway_hostname }}/dashboard/"
       spec:
         entryPoints:
           - websecure

@@ -164,13 +164,13 @@ argocd_helm_values:
       kind: IngressRoute
       metadata:
         name: argo-cd-argocd-server
-      annotations:
-        gethomepage.dev/enabled: "true"
-        gethomepage.dev/name: "Argo CD"
-        gethomepage.dev/pod-selector: "app.kubernetes.io/name=argocd-server"
-        gethomepage.dev/description: "Declarative Continuous Deployment for Kubernetes"
-        gethomepage.dev/group: "Automation"
-        gethomepage.dev/icon: "sh-argo-cd"
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: "Argo CD"
+          gethomepage.dev/pod-selector: "app.kubernetes.io/name=argocd-server"
+          gethomepage.dev/group: "Automation"
+          gethomepage.dev/icon: "sh-argo-cd"
+          gethomepage.dev/href: "https://automation-argo-cd.{{ gateway_hostname }}"
       spec:
         entryPoints:
           - websecure
