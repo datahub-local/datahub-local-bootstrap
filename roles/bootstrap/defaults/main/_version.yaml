@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 8.6.4
+    version: 9.2.2
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -38,7 +38,7 @@ helm_chart_version:
   oauth2-proxy:
     ref: oauth2-proxy/oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
-    version: 7.18.0
+    version: 10.0.0
   snapshot-controller:
     ref: piraeus-charts/snapshot-controller
     repository: https://piraeus.io/helm-charts
