@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 9.2.2
+    version: 9.2.4
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -14,7 +14,7 @@ helm_chart_version:
   external-dns:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
-    version: 1.19.0
+    version: 1.20.0
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
