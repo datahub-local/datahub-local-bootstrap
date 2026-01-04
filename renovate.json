@@ -30,8 +30,8 @@
       "lockFileMaintenance": {
         "enabled": true
       },
-      "groupName": "all non-major Helm/Docker dependencies ({{ lookup (split (lowercase currentVersionTimestamp ) 't') 0 }})",
-      "groupSlug": "chore/all-minor-patch-helm"
+      "groupName": "all Helm/Docker dependencies ({{ lookup (split (lowercase currentVersionTimestamp ) 't') 0 }})",
+      "groupSlug": "chore/all-helm"
     },
     {
       "matchDatasources": [
@@ -45,8 +45,8 @@
       "lockFileMaintenance": {
         "enabled": true
       },
-      "groupName": "all non-major Python dependencies ({{ lookup (split (lowercase releaseTimestamp) 't') 0 }})",
-      "groupSlug": "all-minor-patch-python"
+      "groupName": "all Python dependencies ({{ lookup (split (lowercase releaseTimestamp) 't') 0 }})",
+      "groupSlug": "all-python"
     }
   ],
   "customManagers": [
