@@ -64,13 +64,13 @@ Setting up a loadbalancer or VIP beforehand to use as the API endpoint is possib
 For Debian/Ubuntu OS, ensure python3-apt is installed in the machines:
 
 ```bash
-ansible k3s_cluster -i inventory.yml -b -m shell -a "apt-get update && apt-get install -y python3-apt"
+uv run ansible k3s_cluster -i inventory.yml -b -m shell -a "apt-get update && apt-get install -y python3-apt"
 ```
 
 Start provisioning of the cluster using the following command:
 
 ```bash
-ansible-playbook playbook/site.yml -i inventory.yml
+uv run ansible-playbook playbook/site.yml -i inventory.yml
 ```
 
 ## Upgrading
@@ -78,7 +78,7 @@ ansible-playbook playbook/site.yml -i inventory.yml
 A playbook is provided to upgrade K3s on all nodes in the cluster. To use it, update `k3s_version` with the desired version in `inventory.yml` and run:
 
 ```bash
-ansible-playbook playbook/upgrade.yml -i inventory.yml
+uv run ansible-playbook playbook/upgrade.yml -i inventory.yml
 ```
 
 ## Airgap Install
@@ -129,10 +129,10 @@ If you wish for your kubeconfig to be copied elsewhere and not merged, you can s
 A playbook is provided to bootstrap the K8s cluster with base services ([cert-manager](https://cert-manager.io/), [Longhorn](https://longhorn.io/) and [ArgoCD](argo-cd.readthedocs.io)). To use it, update `Bootstrap` vars with the desired configuration of the services and run:
 
 ```bash
-ansible-playbook playbook/bootstrap.yml -i inventory.yml
+uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml
 
 # Update specific service
-ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argocd
+uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argocd
 ```
 
 ## Other commands
@@ -176,5 +176,5 @@ kubectl run -it --rm --image=curlimages/curl curly -- sh # Run a pod with curl
 Finally, when there are error in Ansible and you want to retrieve the variables:
 
 ```bash
-ansible -i inventory.yml -m debug -a 'msg={{hostvars}}' all | grep k3s_location
+uv run ansible -i inventory.yml -m debug -a 'msg={{hostvars}}' all | grep k3s_location
 ```
