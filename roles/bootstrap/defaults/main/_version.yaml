@@ -42,7 +42,7 @@ helm_chart_version:
   snapshot-controller:
     ref: piraeus-charts/snapshot-controller
     repository: https://piraeus.io/helm-charts
-    version: 4.2.0
+    version: 5.0.1
   reloader:
     ref: stakater/reloader
     repository: https://stakater.github.io/stakater-charts
