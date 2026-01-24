@@ -10,7 +10,7 @@ helm_chart_version:
   reflector:
     ref: emberstack/reflector
     repository: https://emberstack.github.io/helm-charts
-    version: 9.1.45
+    version: 10.0.2
   external-dns:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
@@ -18,7 +18,7 @@ helm_chart_version:
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
-    version: 38.0.2
+    version: 39.0.0
   cert-manager:
     ref: jetstack/cert-manager
     repository: https://charts.jetstack.io
