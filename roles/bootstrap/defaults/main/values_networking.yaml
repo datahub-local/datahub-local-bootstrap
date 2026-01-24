@@ -54,11 +54,12 @@ traefik_helm_values:
       exposedPort: 39000
     web:
       port: 80
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          permanent: true
+      http:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
     websecure:
       port: 443
     metrics:

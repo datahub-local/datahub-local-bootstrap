@@ -163,6 +163,7 @@
         release_namespace: kube-system
         values: "{{ snapshot_controller }}"
         context: "{{ k3s_context_name }}"
+        take_ownership: true
   tags: only-longhorn
   when: "longhorn_enabled"
 
