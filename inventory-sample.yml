@@ -161,5 +161,6 @@ bootstrap:
     #       -----BEGIN OPENSSH PRIVATE KEY-----
     #       ...
     #       -----END OPENSSH PRIVATE KEY-----
+    # argocd_extra_secrets: # extra secrets to be use by Helmdile in file /helm-values/extra-secrets.yaml on ArgoCD
 
     # k8s_device_plugin_enabled: true # false if we want to disable NVIDIA device plugin installation.
