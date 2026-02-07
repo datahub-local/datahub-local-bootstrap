@@ -111,7 +111,7 @@ argocd_helm_values:
         enabled: "{{ enable_service_monitors }}"
     extraContainers:
       - name: helmfile
-        image: ghcr.io/helmfile/helmfile:v0.163.1
+        image: ghcr.io/helmfile/helmfile:v1.2.3
         command: ["/var/run/argocd/argocd-cmp-server"]
         env:
           - name: HELM_CACHE_HOME
