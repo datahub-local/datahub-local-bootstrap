@@ -38,7 +38,7 @@ helm_chart_version:
   oauth2-proxy:
     ref: oauth2-proxy/oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
-    version: 10.1.2
+    version: 10.1.3
   snapshot-controller:
     ref: piraeus-charts/snapshot-controller
     repository: https://piraeus.io/helm-charts
