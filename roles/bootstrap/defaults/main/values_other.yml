@@ -222,7 +222,7 @@ argocd_helm_values:
           echo "Start helmfile for $ARGOCD_APP_NAME" >> "$LOG_FILE"
           echo "##########################################" >> "$LOG_FILE"
 
-          helmfile "${PARAMS[@]}" | tee -a "$LOG_FILE"
+          (helmfile deps && helmfile "${PARAMS[@]}") 2>&1 | tee -a "$LOG_FILE"
           test "${PIPESTATUS[0]}" -eq 0
 
 k8s_device_plugin_enabled: false
