@@ -136,9 +136,11 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
           accessControlAllowHeaders:
             - "*"
           accessControlAllowOriginListRegex:
-            - "{{ gateway_hostname }}"
+            - "https:// {{ gateway_hostname }}"
+            - "https://(.+).{{ gateway_hostname }}"
           accessControlMaxAge: 100
           addVaryHeader: true
+          contentSecurityPolicy: sandbox allow-downloads allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation-by-user-activation
     - apiVersion: traefik.io/v1alpha1
       kind: Middleware
       metadata:
