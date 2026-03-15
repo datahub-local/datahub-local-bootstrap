@@ -131,16 +131,20 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
         headers:
           accessControlAllowMethods:
             - "GET"
+            - "POST"
             - "OPTIONS"
             - "PUT"
           accessControlAllowHeaders:
             - "*"
           accessControlAllowOriginListRegex:
-            - "https:// {{ gateway_hostname }}"
-            - "https://(.+).{{ gateway_hostname }}"
+            - '^https://{{ gateway_hostname | replace(".", "\\.") }}$'
+            - '^https://([A-Za-z0-9-]+\.)+{{ gateway_hostname | replace(".", "\\.") }}$'
           accessControlMaxAge: 100
           addVaryHeader: true
-          contentSecurityPolicy: sandbox allow-downloads allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation-by-user-activation
+          contentSecurityPolicy: "frame-ancestors 'self';"
+          customResponseHeaders:
+            Cross-Origin-Opener-Policy: "unsafe-none"
+            Cross-Origin-Embedder-Policy: "unsafe-none"
     - apiVersion: traefik.io/v1alpha1
       kind: Middleware
       metadata:
@@ -154,6 +158,9 @@ security_oauth2_proxy_helm_values: # https://github.com/oauth2-proxy/manifests/b
           stsIncludeSubdomains: true
           stsPreload: true
           frameDeny: false
+          customResponseHeaders:
+            Cross-Origin-Opener-Policy: "unsafe-none"
+            Cross-Origin-Embedder-Policy: "unsafe-none"
     - apiVersion: traefik.io/v1alpha1
       kind: Middleware
       metadata:
