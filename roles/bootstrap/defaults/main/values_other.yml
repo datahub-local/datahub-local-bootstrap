@@ -109,6 +109,8 @@ argocd_helm_values:
       enabled: "{{ enable_service_monitors }}"
       serviceMonitor:
         enabled: "{{ enable_service_monitors }}"
+    extraArgs:
+      - --loglevel=debug
     extraContainers:
       - name: helmfile
         image: ghcr.io/helmfile/helmfile:v1.2.3
@@ -206,6 +208,19 @@ argocd_helm_values:
             PARAMS+=(-e $ARGOCD_ENV_ENV_NAME)
           fi
 
+          PREFIX_FILE="/tmp/helmfile_${ARGOCD_APP_NAME}_$(date +'%Y%m%d%H%M')"
+          LOG_FILE="${PREFIX_FILE}.log"
+          YAML_FILE="${PREFIX_FILE}.yaml"
+
+          echo "##########################################" >> "$LOG_FILE"
+          echo "1. Execute helmfile update for $ARGOCD_APP_NAME" >> "$LOG_FILE"
+          echo "##########################################" >> "$LOG_FILE"
+          helmfile "${PARAMS[@]}" deps >> "$LOG_FILE" 2>&1 || exit 1
+
+          echo "##########################################" >> "$LOG_FILE"
+          echo "2. Execute helmfile template for $ARGOCD_APP_NAME" >> "$LOG_FILE"
+          echo "##########################################" >> "$LOG_FILE"
+
           PARAMS+=(template --include-crds -q)
 
           if [[ -v ARGOCD_APP_NAMESPACE ]]; then
@@ -216,14 +231,7 @@ argocd_helm_values:
             PARAMS+=(--state-values-file /helm-values/$f)
           done
 
-          LOG_FILE="/tmp/helmfile_${ARGOCD_APP_NAME}_$(date +'%Y%m%d%H%M').log"
-
-          echo "##########################################" >> "$LOG_FILE"
-          echo "Start helmfile for $ARGOCD_APP_NAME" >> "$LOG_FILE"
-          echo "##########################################" >> "$LOG_FILE"
-
-          helmfile "${PARAMS[@]}" | tee -a "$LOG_FILE"
-          test "${PIPESTATUS[0]}" -eq 0
+          helmfile "${PARAMS[@]}" 2>> "$LOG_FILE" > "$YAML_FILE" && cat "$YAML_FILE" || exit 1
 
 k8s_device_plugin_enabled: false
 k8s_device_plugin_helm_values:
