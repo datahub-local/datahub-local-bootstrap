@@ -142,17 +142,17 @@ Furthermore, there are other playbook that helps you to manage the cluster:
 - Reboot the K8s cluster in a safe manner, run:
 
   ```bash
-  ansible-playbook playbook/reboot.yml -i inventory.yml
+  uv run ansible-playbook playbook/reboot.yml -i inventory.yml
   ```
 - Shutdown the K8s cluster in a safe manner, run:
 
   ```bash
-  ansible-playbook playbook/shutdown.yml -i inventory.yml
+  uv run ansible-playbook playbook/shutdown.yml -i inventory.yml
   ```
 - Execute shell command:
 
   ```bash
-  ansible -i inventory.yml k3s_cluster -m shell -a 'hostname' --limit 'datahublocal-xiaomi12'
+  uv run ansible -i inventory.yml k3s_cluster -m shell -a 'sudo systemctl restart systemd-timesyncd && sudo timedatectl show-timesync --all && date --rfc-3339=ns # --limit 'datahublocal-orpi-0'
   ```
 
 ### Debugging
