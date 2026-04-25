@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 9.5.0
+    version: 9.5.4
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -10,7 +10,7 @@ helm_chart_version:
   reflector:
     ref: emberstack/reflector
     repository: https://emberstack.github.io/helm-charts
-    version: 10.0.30
+    version: 10.0.38
   external-dns:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
@@ -18,11 +18,11 @@ helm_chart_version:
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
-    version: 39.0.7
+    version: 39.0.8
   cert-manager:
     ref: jetstack/cert-manager
     repository: https://charts.jetstack.io
-    version: v1.20.1
+    version: v1.20.2
   longhorn:
     ref: longhorn/longhorn
     repository: https://charts.longhorn.io
@@ -34,11 +34,11 @@ helm_chart_version:
   nvidia-device-plugin:
     ref: nvidia-k8s-device-plugin/nvidia-device-plugin
     repository: https://nvidia.github.io/k8s-device-plugin
-    version: 0.19.0
+    version: 0.19.1
   oauth2-proxy:
     ref: oauth2-proxy/oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
-    version: 10.4.2
+    version: 10.4.3
   snapshot-controller:
     ref: piraeus-charts/snapshot-controller
     repository: https://piraeus.io/helm-charts
@@ -46,4 +46,4 @@ helm_chart_version:
   reloader:
     ref: stakater/reloader
     repository: https://stakater.github.io/stakater-charts
-    version: 2.2.9
+    version: 2.2.11
