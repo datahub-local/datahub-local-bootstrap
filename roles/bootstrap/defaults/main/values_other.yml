@@ -59,6 +59,72 @@ argocd_helm_values:
             hs.status = "Progressing"
             hs.message = "Waiting for creation"
             return hs
+        sparkoperator.k8s.io/SparkApplication:
+          health.lua: |
+            hs = {}
+
+            if obj.spec ~= nil and obj.spec.suspend == true then
+              hs.status = "Healthy"
+              hs.message = "SparkApplication suspended"
+              return hs
+            end
+
+            if obj.status ~= nil and obj.status.applicationState ~= nil and obj.status.applicationState.state ~= nil then
+              state = obj.status.applicationState.state
+
+              if state == "RUNNING" or state == "COMPLETED" or state == "SUCCEEDING" or state == "SUSPENDED" then
+                hs.status = "Healthy"
+                hs.message = "SparkApplication state: " .. state
+                return hs
+              end
+
+              if state == "FAILED" or state == "SUBMISSION_FAILED" or state == "FAILING" then
+                hs.status = "Degraded"
+                hs.message = obj.status.applicationState.errorMessage or ("SparkApplication state: " .. state)
+                return hs
+              end
+
+              hs.status = "Progressing"
+              hs.message = "SparkApplication state: " .. state
+              return hs
+            end
+
+            hs.status = "Progressing"
+            hs.message = "Waiting for SparkApplication status"
+            return hs
+        sparkoperator.k8s.io/ScheduledSparkApplication:
+          health.lua: |
+            hs = {}
+
+            if obj.spec ~= nil and obj.spec.suspend == true then
+              hs.status = "Healthy"
+              hs.message = "ScheduledSparkApplication suspended"
+              return hs
+            end
+
+            if obj.status ~= nil and obj.status.scheduleState ~= nil then
+              state = obj.status.scheduleState
+
+              if state == "Scheduled" then
+                hs.status = "Healthy"
+                hs.message = "ScheduledSparkApplication scheduled"
+                return hs
+              end
+
+              if state == "FailedValidation" then
+                hs.status = "Degraded"
+                hs.message = obj.status.reason or "ScheduledSparkApplication validation failed"
+                return hs
+              end
+
+              hs.status = "Progressing"
+              hs.message = "ScheduledSparkApplication state: " .. state
+              return hs
+            end
+
+            hs.status = "Progressing"
+            hs.message = "Waiting for ScheduledSparkApplication status"
+            return hs
     cmp:
       create: true
       plugins:
