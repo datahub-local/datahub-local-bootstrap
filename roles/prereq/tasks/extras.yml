@@ -166,7 +166,7 @@
         name: "ensure-volumes"
         minute: "*/5"
         job: "{{ bin_dir }}/ensure-volumes | multilog t s1048576 n5 '!tai64nlocal' /var/log/ensure-volumes/ 2>&1"
-  when: "extra_volumes"
+  when: "extra_volumes is defined and extra_volumes | length > 0"
 
 - name: Prune Images
   become: true
