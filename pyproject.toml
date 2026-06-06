@@ -7,7 +7,7 @@ requires-python = "<4.0,>=3.12"
 readme = "README.md"
 dependencies = [
     "ansible==13.7.0",
-    "kubernetes==36.0.1",
+    "kubernetes==36.0.2",
 ]
 
 [dependency-groups]
