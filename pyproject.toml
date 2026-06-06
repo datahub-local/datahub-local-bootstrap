@@ -6,7 +6,7 @@ authors = [{ name = "Alvaro Santos Andres", email = "alvsanand@gmail.com" }]
 requires-python = "<4.0,>=3.12"
 readme = "README.md"
 dependencies = [
-    "ansible==13.7.0",
+    "ansible==14.0.0",
     "kubernetes==36.0.2",
 ]
 
