@@ -18,7 +18,7 @@ helm_chart_version:
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
-    version: 40.3.0
+    version: 41.0.0
   cert-manager:
     ref: jetstack/cert-manager
     repository: https://charts.jetstack.io
