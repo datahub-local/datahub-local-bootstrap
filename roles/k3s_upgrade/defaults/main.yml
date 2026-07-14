@@ -1,1 +1,4 @@
 ---
+# Run k3s_maintenance (datastore vacuum) while the server is stopped for the
+# upgrade
+k3s_upgrade_maintenance_enabled: true

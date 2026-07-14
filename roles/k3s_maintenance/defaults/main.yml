@@ -1,0 +1,14 @@
+---
+# Prune old Helm release-history secrets (sh.helm.release.v1.<release>.v<N>),
+# keeping only the newest revisions of each release. Requires the API server
+# to be running.
+k3s_maintenance_prune_helm_secrets: true
+k3s_maintenance_helm_history_keep: 3
+
+# VACUUM the kine sqlite datastore and truncate its WAL. The K3s server must
+# be stopped (asserted at runtime). Skipped when the datastore is not sqlite.
+k3s_maintenance_vacuum_db: true
+k3s_maintenance_db_path: "{{ k3s_location }}/server/db/state.db"
+
+# Remove unused container images from the node. Requires K3s to be running.
+k3s_maintenance_prune_images: false

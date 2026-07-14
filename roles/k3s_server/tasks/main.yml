@@ -1,9 +1,4 @@
 ---
-- name: Fail if running on Android
-  fail:
-    msg: "This playbook cannot be run on Android systems."
-  when: is_android | default(false)
-
 # If airgapped, all K3s artifacts are already on the node.
 - name: Download K3s install script
   when: airgap_dir is undefined

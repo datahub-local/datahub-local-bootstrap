@@ -1,10 +1,4 @@
 ---
-- name: Set facts
-  hosts: all
-  gather_facts: false
-  roles:
-    - role: facts
-
 - name: Drain nodes from k3s cluster
   hosts: k3s_cluster
   connection: local
@@ -32,7 +26,6 @@
 - name: Stop K3s [agent]
   hosts:
     - agent
-    - agent_droid
   become: true
   tasks:
     - name: Stop K3s [agent]

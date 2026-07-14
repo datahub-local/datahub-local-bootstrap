@@ -5,10 +5,9 @@ kubelet_config_enabled: true
 kubelet_config_shutdown_grace_period: "30s"
 kubelet_config_shutdown_grace_period_critical_pods: "10s"
 
-path_prefix: ""
-k3s_location: "{{ path_prefix }}/var/lib/rancher/k3s"
-bin_dir: "{{ path_prefix }}/usr/local/bin"
-systemd_dir: "{{ path_prefix }}/etc/systemd/system"
+k3s_location: "/var/lib/rancher/k3s"
+bin_dir: "/usr/local/bin"
+systemd_dir: "/etc/systemd/system"
 
 api_port: 6443
 

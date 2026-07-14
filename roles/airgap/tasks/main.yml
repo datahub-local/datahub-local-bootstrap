@@ -35,7 +35,7 @@
     - name: Distribute K3s SELinux RPM
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "{{ path_prefix }}/tmp/"
+        dest: "/tmp/"
         owner: root
         group: root
         mode: 0755
@@ -55,7 +55,7 @@
 
     - name: Make images directory
       ansible.builtin.file:
-        path: "{{ path_prefix }}/var/lib/rancher/k3s/agent/images/"
+        path: "/var/lib/rancher/k3s/agent/images/"
         mode: 0755
         state: directory
 
@@ -67,7 +67,7 @@
       when: ansible_architecture == 'x86_64'
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "{{ path_prefix }}/var/lib/rancher/k3s/agent/images/k3s-airgap-images-amd64.tar"
+        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-amd64.tar"
         owner: root
         group: root
         mode: 0755
@@ -82,7 +82,7 @@
       when: ansible_architecture == 'aarch64'
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "{{ path_prefix }}/var/lib/rancher/k3s/agent/images/k3s-airgap-images-arm64.tar"
+        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-arm64.tar"
         owner: root
         group: root
         mode: 0755
@@ -97,7 +97,7 @@
       when: ansible_architecture == 'armv7l'
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "{{ path_prefix }}/var/lib/rancher/k3s/agent/images/k3s-airgap-images-arm.tar"
+        dest: "/var/lib/rancher/k3s/agent/images/k3s-airgap-images-arm.tar"
         owner: root
         group: root
         mode: 0755

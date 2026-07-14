@@ -1,0 +1,6 @@
+---
+- name: Prune unused container images
+  ansible.builtin.command:
+    cmd: "{{ bin_dir }}/k3s crictl rmi --prune"
+  register: k3s_maintenance_rmi_result
+  changed_when: k3s_maintenance_rmi_result.stdout | length > 0

@@ -1,0 +1,31 @@
+---
+# Pruning goes through the API server, so running it on one server is enough
+- name: Prune Helm release-history secrets
+  hosts: server[0]
+  become: true
+  roles:
+    - role: k3s_maintenance
+      vars:
+        k3s_maintenance_vacuum_db: false
+
+# Servers are stopped one at a time to vacuum the kine sqlite datastore
+- name: Vacuum K3s datastore
+  hosts: server
+  become: true
+  serial: 1
+  tasks:
+    - name: Stop K3s service
+      ansible.builtin.systemd:
+        state: stopped
+        name: k3s
+
+    - name: Run K3s maintenance while the server is stopped
+      ansible.builtin.include_role:
+        name: k3s_maintenance
+      vars:
+        k3s_maintenance_prune_helm_secrets: false
+
+    - name: Start K3s service
+      ansible.builtin.systemd:
+        state: started
+        name: k3s

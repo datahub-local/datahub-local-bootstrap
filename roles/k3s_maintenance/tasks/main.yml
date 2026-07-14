@@ -1,0 +1,12 @@
+---
+- name: Prune Helm release-history secrets
+  ansible.builtin.include_tasks: prune_helm_secrets.yml
+  when: k3s_maintenance_prune_helm_secrets
+
+- name: Vacuum kine sqlite datastore
+  ansible.builtin.include_tasks: vacuum_db.yml
+  when: k3s_maintenance_vacuum_db
+
+- name: Prune unused container images
+  ansible.builtin.include_tasks: prune_images.yml
+  when: k3s_maintenance_prune_images
