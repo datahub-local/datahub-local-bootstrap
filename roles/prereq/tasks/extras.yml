@@ -150,24 +150,6 @@
         nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
   when: k3s_gpu_nvidia_enabled
 
-- name: Ensure Volumes
-  block:
-    - ansible.builtin.template:
-        src: "ensure-volumes.sh.j2"
-        dest: "{{ bin_dir }}/ensure-volumes"
-        owner: root
-        group: root
-        mode: "u=rwx,g=rx,o=rx"
-    - ansible.builtin.file:
-        path: "/var/log/ensure-volumes/"
-        mode: 0755
-        state: directory
-    - ansible.builtin.cron:
-        name: "ensure-volumes"
-        minute: "*/5"
-        job: "{{ bin_dir }}/ensure-volumes | multilog t s1048576 n5 '!tai64nlocal' /var/log/ensure-volumes/ 2>&1"
-  when: "extra_volumes is defined and extra_volumes | length > 0"
-
 - name: Prune Images
   become: true
   block:
