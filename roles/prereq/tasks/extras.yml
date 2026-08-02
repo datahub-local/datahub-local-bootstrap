@@ -99,6 +99,7 @@
     path: "{{ item.value.path }}"
     src: "/dev/{{ item.value.id }}"
     fstype: "{{ item.value.fstype | default('ext4') }}"
+    opts: "{{ item.value.opts | default('defaults,nofail') }}"
     state: mounted
   with_items: "{{ extra_volumes | dict2items }}"
 
