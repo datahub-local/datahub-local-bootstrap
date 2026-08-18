@@ -73,6 +73,22 @@ Start provisioning of the cluster using the following command:
 uv run ansible-playbook playbook/site.yml -i inventory.yml
 ```
 
+## Adding a new node
+
+To add a new node to a running cluster, declare it in `inventory.yml` under the `server` or the `agent` group and run `site.yml` limited to that node:
+
+```bash
+uv run ansible-playbook playbook/site.yml -i inventory.yml --limit datahublocal-amd-2
+```
+
+Only the new node is provisioned, the rest of the cluster is left untouched. Once the playbook finishes, check that the node joined:
+
+```bash
+kubectl get nodes
+```
+
+Note that adding a **server** node requires the cluster to be already running in HA mode with embedded etcd (the first server started with `--cluster-init`), and the total number of servers must stay odd (3, 5, 7...).
+
 ## Upgrading
 
 A playbook is provided to upgrade K3s on all nodes in the cluster. To use it, update `k3s_version` with the desired version in `inventory.yml` and run:

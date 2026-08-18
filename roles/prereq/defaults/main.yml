@@ -8,6 +8,12 @@ base_packages:
   - open-iscsi
   - openssh-client
 extra_packages: []
+# NVIDIA driver install, used when k3s_gpu_nvidia_enabled is true (Debian family)
+nvidia_debian_repo_url: http://deb.debian.org/debian
+nvidia_debian_repo_components: contrib non-free
+nvidia_driver_packages:
+  - "linux-headers-{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+  - nvidia-driver
 etc_hosts_file: /etc/hosts
 extra_volumes: {}
 os_upgrade: false
