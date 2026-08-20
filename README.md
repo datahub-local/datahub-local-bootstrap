@@ -148,7 +148,7 @@ A playbook is provided to bootstrap the K8s cluster with base services ([cert-ma
 uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml
 
 # Update specific service
-uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argocd
+uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argocd --extra-vars "enable_service_monitors=true"
 ```
 
 ## Other commands
