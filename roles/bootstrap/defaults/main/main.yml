@@ -1,4 +1,6 @@
 ---
+k3s_context_name: k3s-ansible
+
 helm_force_update: false
 
 gateway_hostname: ""

@@ -142,7 +142,7 @@ If you wish for your kubeconfig to be copied elsewhere and not merged, you can s
 
 ## Bootstrapping
 
-A playbook is provided to bootstrap the K8s cluster with base services ([cert-manager](https://cert-manager.io/), [Longhorn](https://longhorn.io/) and [ArgoCD](argo-cd.readthedocs.io)). To use it, update `Bootstrap` vars with the desired configuration of the services and run:
+A playbook is provided to bootstrap the K8s cluster with base services ([cert-manager](https://cert-manager.io/), [External Secrets](https://external-secrets.io/), [Longhorn](https://longhorn.io/) and [ArgoCD](argo-cd.readthedocs.io)). To use it, update `Bootstrap` vars with the desired configuration of the services and run:
 
 ```bash
 uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml

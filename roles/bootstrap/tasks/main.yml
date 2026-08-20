@@ -125,6 +125,21 @@
   tags: only-security
   when: "security_enabled"
 
+- name: external-secrets
+  block:
+    - name: External Secrets - Install chart
+      kubernetes.core.helm:
+        name: external-secrets
+        chart_ref: external-secrets/external-secrets
+        chart_version: "{{ helm_chart_version['external-secrets']['version'] }}"
+        create_namespace: true
+        force: "{{ helm_force_update }}"
+        release_namespace: security
+        values: "{{ external_secrets_helm_values }}"
+        context: "{{ k3s_context_name }}"
+  tags: only-external-secrets
+  when: "external_secrets_enabled"
+
 - name: longhorn
   block:
     - name: Longhorn - Tag create-default-disk in agent nodes
@@ -184,6 +199,27 @@
 
 - name: argocd
   block:
+    - name: ArgoCD - Mint API token
+      vars:
+        argocd_api_token_params:
+          account: "{{ argocd_api_token_account }}"
+          signing_key: "{{ argocd_api_token_signing_key }}"
+          issued_at: "{{ argocd_api_token_issued_at }}"
+      ansible.builtin.command:
+        argv:
+          - python3
+          - "{{ role_path }}/files/argocd_api_token.py"
+        stdin: "{{ argocd_api_token_params | to_json }}"
+      changed_when: false
+      no_log: true
+      register: argocd_api_token_minted
+      when: "argocd_api_token_enabled"
+    - name: ArgoCD - Register API token
+      ansible.builtin.set_fact:
+        argocd_api_token: "{{ (argocd_api_token_minted.stdout | from_json)['token'] }}"
+        argocd_api_token_metadata: "{{ (argocd_api_token_minted.stdout | from_json)['tokens'] }}"
+      no_log: true
+      when: "argocd_api_token_enabled"
     - name: ArgoCD - Install chart
       kubernetes.core.helm:
         name: argo-cd
@@ -192,7 +228,7 @@
         create_namespace: true
         force: "{{ helm_force_update }}"
         release_namespace: automation
-        values: "{{ argocd_helm_values }}"
+        values: "{{ argocd_helm_values | combine(argocd_api_token_overlay, recursive=true, list_merge='append') }}"
         context: "{{ k3s_context_name }}"
     - name: ArgoCD - Rollout server
       ansible.builtin.shell: |

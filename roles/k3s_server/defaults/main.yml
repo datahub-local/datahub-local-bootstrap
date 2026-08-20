@@ -1,4 +1,6 @@
 ---
+k3s_context_name: k3s-ansible
+
 kubeconfig: ~/.kube/config
 kubeconfig_new: ~/.kube/config.new
 user_kubectl: true

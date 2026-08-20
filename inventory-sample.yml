@@ -134,6 +134,11 @@ bootstrap:
     # external_dns_secret_data: # Data of the secret that the issuer will get the credentials
     # external_dns_helm_values: # Helm values to configure it. See https://github.com/kubernetes-sigs/external-dns/blob/master/charts/external-dns/values.yaml
 
+    # external_secrets_enabled: true # false if we want to disable External Secrets Operator installation.
+    # # No SecretStore/ClusterSecretStore provider is configured by the bootstrap, declare them yourself
+    # # afterwards. See https://external-secrets.io/latest/provider/aws-secrets-manager/ and friends.
+    # external_secrets_helm_values: # Helm values to configure it. See https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+
     # longhorn_enabled: true # false if we want to disable Longhorn installation.
     # longhorn_enabled_only_agent: false # true if we want to enable Longhorn only in agents.
     # longhorn_replica_count: 2 # num of replicas that Longhorn will use. More replicas, more space required
@@ -157,5 +162,10 @@ bootstrap:
     #       ...
     #       -----END OPENSSH PRIVATE KEY-----
     # argocd_extra_secrets: # extra secrets to be use by Helmdile in file /helm-values/extra-secrets.yaml on ArgoCD
+    # argocd_api_token_enabled: true # false if we want to disable the pre-generated ArgoCD API token.
+    # argocd_api_token_account: bootstrap # ArgoCD local account that owns the token.
+    # argocd_api_token_signing_key: "{{ security_github_client_secret }}" # key used to sign the API token and every ArgoCD session.
+    # argocd_api_token_issued_at: 1735689600 # "iat"/"nbf" claim of the token, change it to rotate the token.
+    # argocd_api_token_secret_name: argocd-api-token # Secret created in the automation namespace holding the token.
 
     # k8s_device_plugin_enabled: true # false if we want to disable NVIDIA device plugin installation.

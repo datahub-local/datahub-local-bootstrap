@@ -6,7 +6,7 @@
     - name: Drain node [agent]
       when: "drain_nodes and 'agent' in group_names"
       ansible.builtin.shell: |
-        kubectl config use-context {{ k3s_context_name }}
+        kubectl config use-context {{ k3s_context_name | default('k3s-ansible') }}
         kubectl drain {{ inventory_hostname }} \
           --force \
           --grace-period=30 \

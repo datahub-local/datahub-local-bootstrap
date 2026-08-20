@@ -12,6 +12,30 @@ argocd_helm_secrets:
     security_github_client_secret: "{{ security_github_client_secret }}"
     security_github_organizations: "{{ security_github_organizations }}"
   extra-secrets.yaml: "{{ argocd_extra_secrets | to_nice_yaml }}"
+argocd_api_token_enabled: false
+argocd_api_token_account: bootstrap
+argocd_api_token_signing_key: "{{ security_github_client_secret }}"
+argocd_api_token_issued_at: 1735689600 # 2025-01-01T00:00:00Z, only used as the "iat"/"nbf" claim of the token
+argocd_api_token_secret_name: argocd-api-token
+# Merged into argocd_helm_values when argocd_api_token_enabled: pins the JWT signing key so the
+# token stays valid across installs, declares the local account and registers the minted token id.
+# The account inherits configs.rbac.policy.default, so it is an ArgoCD admin unless a policy.csv
+# entry restricts it.
+argocd_api_token_helm_values:
+  configs:
+    cm: "{{ {'accounts.' ~ argocd_api_token_account: 'apiKey'} }}"
+    secret:
+      extra: >-
+        {{ {'server.secretkey': argocd_api_token_signing_key,
+            'accounts.' ~ argocd_api_token_account ~ '.tokens': argocd_api_token_metadata | to_json} }}
+  extraObjects:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ argocd_api_token_secret_name }}"
+      stringData:
+        token: "{{ argocd_api_token }}"
+argocd_api_token_overlay: "{{ argocd_api_token_helm_values if argocd_api_token_enabled | bool else {} }}"
 argocd_helm_values:
   # custom values from https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
   global:

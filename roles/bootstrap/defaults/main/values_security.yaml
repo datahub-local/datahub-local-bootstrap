@@ -280,3 +280,11 @@ cert_manager_helm_values:
           annotations:
             reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
             reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+
+external_secrets_enabled: true
+external_secrets_helm_values:
+  # https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+  installCRDs: true
+
+  serviceMonitor:
+    enabled: "{{ enable_service_monitors }}"

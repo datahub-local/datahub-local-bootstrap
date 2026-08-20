@@ -15,6 +15,10 @@ helm_chart_version:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
     version: 1.21.1
+  external-secrets:
+    ref: external-secrets/external-secrets
+    repository: https://charts.external-secrets.io
+    version: 2.9.0
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts

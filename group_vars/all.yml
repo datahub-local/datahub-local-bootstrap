@@ -1,6 +1,4 @@
 ---
-k3s_context_name: k3s-ansible
-
 kubelet_config_enabled: true
 kubelet_config_shutdown_grace_period: "30s"
 kubelet_config_shutdown_grace_period_critical_pods: "10s"
