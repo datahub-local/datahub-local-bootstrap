@@ -174,14 +174,14 @@ argocd_helm_values:
         security_github_organizations: "{{ security_github_organizations }}"
   applicationSet:
     metrics:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
       serviceMonitor:
-        enabled: "{{ enable_service_monitors }}"
+        enabled: "{{ enable_service_monitors | bool }}"
   controller:
     metrics:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
       serviceMonitor:
-        enabled: "{{ enable_service_monitors }}"
+        enabled: "{{ enable_service_monitors | bool }}"
   dex:
     enable: "{{ security_enabled }}"
     livenessProbe:
@@ -189,16 +189,16 @@ argocd_helm_values:
     readinessProbe:
       enabled: true
     metrics:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
       serviceMonitor:
-        enabled: "{{ enable_service_monitors }}"
+        enabled: "{{ enable_service_monitors | bool }}"
   repoServer:
     clusterRoleRules:
       enabled: true
     metrics:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
       serviceMonitor:
-        enabled: "{{ enable_service_monitors }}"
+        enabled: "{{ enable_service_monitors | bool }}"
     extraArgs:
       - --loglevel=debug
     extraContainers:
@@ -249,9 +249,9 @@ argocd_helm_values:
           optional: true
   server:
     metrics:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
       serviceMonitor:
-        enabled: "{{ enable_service_monitors }}"
+        enabled: "{{ enable_service_monitors | bool }}"
   extraObjects:
     - apiVersion: traefik.io/v1alpha1
       kind: IngressRoute

@@ -24,7 +24,7 @@ longhorn_helm_values:
       selector: "AGENT_NODE"
   metrics:
     serviceMonitor:
-      enabled: "{{ enable_service_monitors }}"
+      enabled: "{{ enable_service_monitors | bool }}"
   extraObjects:
     - apiVersion: traefik.io/v1alpha1
       kind: IngressRoute

@@ -76,7 +76,7 @@ security_dex_helm_values:
           orgs: "{{ security_github_organizations_mapped | from_yaml }}"
 
   serviceMonitor:
-    enabled: "{{ enable_service_monitors }}"
+    enabled: "{{ enable_service_monitors | bool }}"
 
   ingress:
     enabled: false
@@ -287,4 +287,4 @@ external_secrets_helm_values:
   installCRDs: true
 
   serviceMonitor:
-    enabled: "{{ enable_service_monitors }}"
+    enabled: "{{ enable_service_monitors | bool }}"
