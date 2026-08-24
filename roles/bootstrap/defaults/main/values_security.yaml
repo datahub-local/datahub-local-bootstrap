@@ -288,3 +288,16 @@ external_secrets_helm_values:
 
   serviceMonitor:
     enabled: "{{ enable_service_monitors | bool }}"
+
+# https://agent-sandbox.sigs.k8s.io - Sandbox API + controller to run isolated, stateful,
+# singleton workloads such as AI agent runtimes.
+agent_sandbox_enabled: false
+agent_sandbox_repository: "{{ manifest_version['agent-sandbox']['repository'] }}"
+agent_sandbox_version: "{{ manifest_version['agent-sandbox']['version'] }}"
+agent_sandbox_namespace: agent-sandbox-system
+# Extensions add the SandboxTemplate, SandboxClaim and SandboxWarmPool APIs on top of Sandbox.
+agent_sandbox_extensions_enabled: true
+agent_sandbox_manifest: "{{ 'sandbox-with-extensions.yaml' if agent_sandbox_extensions_enabled | bool else 'sandbox.yaml' }}"
+agent_sandbox_manifest_url: "https://github.com/{{ agent_sandbox_repository }}/releases/download/{{ agent_sandbox_version }}/{{ agent_sandbox_manifest }}"
+agent_sandbox_field_manager: bootstrap
+agent_sandbox_wait_timeout: 180

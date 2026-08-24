@@ -21,238 +21,62 @@
     force_update: true
   with_items: "{{ helm_chart_version | dict2items }}"
 
+# The installation order below is significant, do not reshuffle it:
+# cert-manager issues the wildcard certificate reflected by kubernetes-reflector and
+# consumed by the Traefik gateway, so it has to be in place before the ingress layer.
+# Everything else is layered on top of that ingress/security baseline.
+
 - name: cert-manager
-  block:
-    - name: cert-manager - Install chart
-      kubernetes.core.helm:
-        name: cert-manager
-        chart_ref: jetstack/cert-manager
-        chart_version: "{{ helm_chart_version['cert-manager']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: security
-        values: "{{ cert_manager_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: security/cert_manager.yml
   tags: only-cert-manager
 
 - name: external-dns
-  block:
-    - name: external-dns - Create DNS Secret
-      kubernetes.core.k8s:
-        namespace: kube-system
-        definition: "{{ lookup('ansible.builtin.template', 'external_dns_secret.yaml.j2', template_vars = {}) | from_yaml_all }}"
-        state: present
-    - name: external-dns - Install chart
-      kubernetes.core.helm:
-        name: external-dns
-        chart_ref: external-dns/external-dns
-        chart_version: "{{ helm_chart_version['external-dns']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ external_dns_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: networking/external_dns.yml
   tags: only-external-dns
 
 - name: kubernetes-reflector
-  block:
-    - name: kubernetes-reflector - Install chart
-      kubernetes.core.helm:
-        name: kubernetes-reflector
-        chart_ref: emberstack/reflector
-        chart_version: "{{ helm_chart_version['reflector']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ kubernetes_reflector_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: other/kubernetes_reflector.yml
   tags: only-kubernetes-reflector
 
 - name: kubernetes-reloader
+  ansible.builtin.import_tasks: other/kubernetes_reloader.yml
   tags: only-kubernetes-reloader
-  block:
-    - name: kubernetes-reloader - Install chart
-      kubernetes.core.helm:
-        name: kubernetes-reloader
-        chart_ref: stakater/reloader
-        chart_version: "{{ helm_chart_version['reloader']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ kubernetes_reloader_helm_values }}"
-        context: "{{ k3s_context_name }}"
 
 - name: traefik
-  block:
-    - name: traefik - Install chart
-      kubernetes.core.helm:
-        name: traefik
-        chart_ref: traefik/traefik
-        chart_version: "{{ helm_chart_version['traefik']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ traefik_helm_values }}"
-        context: "{{ k3s_context_name }}"
-    - ansible.builtin.wait_for:
-        timeout: "120"
+  ansible.builtin.import_tasks: networking/traefik.yml
   tags: only-traefik
 
 - name: security
-  block:
-    - name: Security - Authentication
-      block:
-        - name: Dex - Install chart
-          kubernetes.core.helm:
-            name: dex
-            chart_ref: dex/dex
-            chart_version: "{{ helm_chart_version['dex']['version'] }}"
-            create_namespace: true
-            force: "{{ helm_force_update }}"
-            release_namespace: security
-            values: "{{ security_dex_helm_values }}"
-            context: "{{ k3s_context_name }}"
-        - name: Oauth2 Proxy - Install chart
-          kubernetes.core.helm:
-            name: oauth2-proxy
-            chart_ref: oauth2-proxy/oauth2-proxy
-            chart_version: "{{ helm_chart_version['oauth2-proxy']['version'] }}"
-            create_namespace: true
-            force: "{{ helm_force_update }}"
-            release_namespace: security
-            values: "{{ security_oauth2_proxy_helm_values }}"
-            context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: security/authentication.yml
   tags: only-security
   when: "security_enabled"
 
 - name: external-secrets
-  block:
-    - name: External Secrets - Install chart
-      kubernetes.core.helm:
-        name: external-secrets
-        chart_ref: external-secrets/external-secrets
-        chart_version: "{{ helm_chart_version['external-secrets']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: security
-        values: "{{ external_secrets_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: security/external_secrets.yml
   tags: only-external-secrets
   when: "external_secrets_enabled"
 
+- name: agent-sandbox
+  ansible.builtin.import_tasks: security/agent_sandbox.yml
+  tags: only-agent-sandbox
+  when: "agent_sandbox_enabled"
+
 - name: longhorn
-  block:
-    - name: Longhorn - Tag create-default-disk in agent nodes
-      ansible.builtin.shell: |
-        kubectl annotate node {{ item }} 'node.longhorn.io/default-disks-config=[{"path":"{{hostvars[item].longhorn_data_dir | default(longhorn_data_dir)}}", "allowScheduling":true}]' --overwrite
-        sleep 5
-        kubectl label node {{ item }} 'node.longhorn.io/create-default-disk=config' --overwrite
-      when: "hostvars[item].k3s_agent_longhorn_enabled"
-      with_items: "{{ groups['agent'] }}"
-    - name: Longhorn - Install chart
-      kubernetes.core.helm:
-        name: longhorn
-        chart_ref: longhorn/longhorn
-        chart_version: "{{ helm_chart_version['longhorn']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ longhorn_helm_values }}"
-        context: "{{ k3s_context_name }}"
-    - name: Longhorn - Tag agent nodes
-      ansible.builtin.shell: |
-        kubectl patch node.longhorn.io {{ item }} --type=json -p='[{"op": "replace", "path": "/spec/tags", "value":["AGENT_NODE"]}]' -n kube-system
-      retries: 10
-      delay: 30
-      register: result
-      until: result.rc == 0
-      when: "hostvars[item].k3s_agent_longhorn_enabled"
-      with_items: "{{ groups['agent'] }}"
-    - name: Longhorn - Install Snapshot Controller chart
-      kubernetes.core.helm:
-        name: snapshot-controller
-        chart_ref: piraeus-charts/snapshot-controller
-        chart_version: "{{ helm_chart_version['snapshot-controller']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ snapshot_controller }}"
-        context: "{{ k3s_context_name }}"
-        take_ownership: true
+  ansible.builtin.import_tasks: storage/longhorn.yml
   tags: only-longhorn
   when: "longhorn_enabled"
 
 - name: nfs-external-provisioner
-  block:
-    - name: NFS Subdir External Provisioner - Install chart
-      kubernetes.core.helm:
-        name: nfs-subdir-external-provisioner
-        chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
-        chart_version: "{{ helm_chart_version['nfs-subdir-external-provisioner']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ nfs_external_provisioner_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: storage/nfs_external_provisioner.yml
   tags: only-nfs-subdir-external-provisioner
   when: "nfs_external_provisioner_enabled"
 
 - name: argocd
-  block:
-    - name: ArgoCD - Mint API token
-      vars:
-        argocd_api_token_params:
-          account: "{{ argocd_api_token_account }}"
-          signing_key: "{{ argocd_api_token_signing_key }}"
-          issued_at: "{{ argocd_api_token_issued_at }}"
-      ansible.builtin.command:
-        argv:
-          - python3
-          - "{{ role_path }}/files/argocd_api_token.py"
-        stdin: "{{ argocd_api_token_params | to_json }}"
-      changed_when: false
-      no_log: true
-      register: argocd_api_token_minted
-      when: "argocd_api_token_enabled"
-    - name: ArgoCD - Register API token
-      ansible.builtin.set_fact:
-        argocd_api_token: "{{ (argocd_api_token_minted.stdout | from_json)['token'] }}"
-        argocd_api_token_metadata: "{{ (argocd_api_token_minted.stdout | from_json)['tokens'] }}"
-      no_log: true
-      when: "argocd_api_token_enabled"
-    - name: ArgoCD - Install chart
-      kubernetes.core.helm:
-        name: argo-cd
-        chart_ref: argo/argo-cd
-        chart_version: "{{ helm_chart_version['argo-cd']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: automation
-        values: "{{ argocd_helm_values | combine(argocd_api_token_overlay, recursive=true, list_merge='append') }}"
-        context: "{{ k3s_context_name }}"
-    - name: ArgoCD - Rollout server
-      ansible.builtin.shell: |
-        sleep 15 && kubectl rollout restart -n automation deploy/argo-cd-argocd-server || true
-    - name: ArgoCD - Create Projects
-      kubernetes.core.k8s:
-        state: present
-        namespace: automation
-        definition: "{{ lookup('ansible.builtin.template', 'argocd_project.yaml.j2', template_vars = {'namespace': item}) | from_yaml_all }}"
-      with_items: "{{ argocd_namespaces }}"
+  ansible.builtin.import_tasks: other/argocd.yml
   tags: only-argocd
   when: "argocd_enabled"
 
 - name: nvidia-k8s-device-plugin
-  block:
-    - name: NVIDIA k8s Device Plugin - Install chart
-      kubernetes.core.helm:
-        name: nvidia-device-plugin
-        chart_ref: nvidia-k8s-device-plugin/nvidia-device-plugin
-        chart_version: "{{ helm_chart_version['nvidia-device-plugin']['version'] }}"
-        create_namespace: true
-        force: "{{ helm_force_update }}"
-        release_namespace: kube-system
-        values: "{{ k8s_device_plugin_helm_values }}"
-        context: "{{ k3s_context_name }}"
+  ansible.builtin.import_tasks: other/nvidia_device_plugin.yml
   tags: only-nvidia-k8s-device-plugin
   when: "k8s_device_plugin_enabled"

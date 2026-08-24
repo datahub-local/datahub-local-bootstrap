@@ -1,0 +1,45 @@
+---
+- name: ArgoCD - Mint API token
+  vars:
+    argocd_api_token_params:
+      account: "{{ argocd_api_token_account }}"
+      signing_key: "{{ argocd_api_token_signing_key }}"
+      issued_at: "{{ argocd_api_token_issued_at }}"
+  ansible.builtin.command:
+    argv:
+      - python3
+      - "{{ role_path }}/files/argocd_api_token.py"
+    stdin: "{{ argocd_api_token_params | to_json }}"
+  changed_when: false
+  no_log: true
+  register: argocd_api_token_minted
+  when: "argocd_api_token_enabled"
+
+- name: ArgoCD - Register API token
+  ansible.builtin.set_fact:
+    argocd_api_token: "{{ (argocd_api_token_minted.stdout | from_json)['token'] }}"
+    argocd_api_token_metadata: "{{ (argocd_api_token_minted.stdout | from_json)['tokens'] }}"
+  no_log: true
+  when: "argocd_api_token_enabled"
+
+- name: ArgoCD - Install chart
+  kubernetes.core.helm:
+    name: argo-cd
+    chart_ref: argo/argo-cd
+    chart_version: "{{ helm_chart_version['argo-cd']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: automation
+    values: "{{ argocd_helm_values | combine(argocd_api_token_overlay, recursive=true, list_merge='append') }}"
+    context: "{{ k3s_context_name }}"
+
+- name: ArgoCD - Rollout server
+  ansible.builtin.shell: |
+    sleep 15 && kubectl rollout restart -n automation deploy/argo-cd-argocd-server || true
+
+- name: ArgoCD - Create Projects
+  kubernetes.core.k8s:
+    state: present
+    namespace: automation
+    definition: "{{ lookup('ansible.builtin.template', 'argocd_project.yaml.j2', template_vars = {'namespace': item}) | from_yaml_all }}"
+  with_items: "{{ argocd_namespaces }}"

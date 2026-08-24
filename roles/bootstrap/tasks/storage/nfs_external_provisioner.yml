@@ -1,0 +1,11 @@
+---
+- name: NFS Subdir External Provisioner - Install chart
+  kubernetes.core.helm:
+    name: nfs-subdir-external-provisioner
+    chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+    chart_version: "{{ helm_chart_version['nfs-subdir-external-provisioner']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: kube-system
+    values: "{{ nfs_external_provisioner_helm_values }}"
+    context: "{{ k3s_context_name }}"

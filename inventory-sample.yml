@@ -139,6 +139,10 @@ bootstrap:
     # # afterwards. See https://external-secrets.io/latest/provider/aws-secrets-manager/ and friends.
     # external_secrets_helm_values: # Helm values to configure it. See https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
 
+    # agent_sandbox_enabled: false # true if we want to install the Agent Sandbox controller. See https://agent-sandbox.sigs.k8s.io
+    # agent_sandbox_extensions_enabled: true # false to install only the Sandbox API, without the SandboxTemplate/SandboxClaim/SandboxWarmPool ones.
+    # agent_sandbox_namespace: agent-sandbox-system # Namespace where the Agent Sandbox controller is installed.
+
     # longhorn_enabled: true # false if we want to disable Longhorn installation.
     # longhorn_enabled_only_agent: false # true if we want to enable Longhorn only in agents.
     # longhorn_replica_count: 2 # num of replicas that Longhorn will use. More replicas, more space required

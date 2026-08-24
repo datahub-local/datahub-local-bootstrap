@@ -1,0 +1,11 @@
+---
+- name: kubernetes-reloader - Install chart
+  kubernetes.core.helm:
+    name: kubernetes-reloader
+    chart_ref: stakater/reloader
+    chart_version: "{{ helm_chart_version['reloader']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: kube-system
+    values: "{{ kubernetes_reloader_helm_values }}"
+    context: "{{ k3s_context_name }}"

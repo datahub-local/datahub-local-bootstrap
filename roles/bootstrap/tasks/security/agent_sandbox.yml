@@ -1,0 +1,26 @@
+---
+# Upstream ships plain manifests instead of a Helm chart, so the release bundle is applied as is.
+# The Sandbox CRD is bigger than the 262144 bytes allowed in the client-side apply annotation,
+# hence the server-side apply.
+- name: Agent Sandbox - Install manifests
+  vars:
+    agent_sandbox_release: "{{ lookup('ansible.builtin.url', agent_sandbox_manifest_url, split_lines=false) }}"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ agent_sandbox_release | from_yaml_all | list }}"
+    server_side_apply:
+      field_manager: "{{ agent_sandbox_field_manager }}"
+      force_conflicts: true
+    context: "{{ k3s_context_name }}"
+
+- name: Agent Sandbox - Wait for the controller to become available
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: agent-sandbox-controller
+    namespace: "{{ agent_sandbox_namespace }}"
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: "{{ agent_sandbox_wait_timeout }}"
+    context: "{{ k3s_context_name }}"

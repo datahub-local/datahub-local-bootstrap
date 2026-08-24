@@ -1,0 +1,17 @@
+---
+- name: external-dns - Create DNS Secret
+  kubernetes.core.k8s:
+    namespace: kube-system
+    definition: "{{ lookup('ansible.builtin.template', 'external_dns_secret.yaml.j2', template_vars = {}) | from_yaml_all }}"
+    state: present
+
+- name: external-dns - Install chart
+  kubernetes.core.helm:
+    name: external-dns
+    chart_ref: external-dns/external-dns
+    chart_version: "{{ helm_chart_version['external-dns']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: kube-system
+    values: "{{ external_dns_helm_values }}"
+    context: "{{ k3s_context_name }}"

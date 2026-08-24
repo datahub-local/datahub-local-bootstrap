@@ -1,0 +1,11 @@
+---
+- name: cert-manager - Install chart
+  kubernetes.core.helm:
+    name: cert-manager
+    chart_ref: jetstack/cert-manager
+    chart_version: "{{ helm_chart_version['cert-manager']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: security
+    values: "{{ cert_manager_helm_values }}"
+    context: "{{ k3s_context_name }}"

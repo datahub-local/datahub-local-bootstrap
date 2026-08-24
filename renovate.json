@@ -69,6 +69,16 @@
       "matchStrings": [
         "$each(container_image_version, function($v, $k) { {'packageName': $k , 'datasource': 'docker', 'currentValue': $v} })"
       ]
+    },
+    {
+      "customType": "jsonata",
+      "fileFormat": "yaml",
+      "managerFilePatterns": [
+        "/(^|/)roles/bootstrap/defaults/main/_version.yaml$/"
+      ],
+      "matchStrings": [
+        "$each(manifest_version, function($v, $k) { {'depName':$k, 'packageName': $v.repository, 'datasource': 'github-releases', 'currentValue': $v.version} })"
+      ]
     }
   ]
 }

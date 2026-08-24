@@ -142,7 +142,7 @@ If you wish for your kubeconfig to be copied elsewhere and not merged, you can s
 
 ## Bootstrapping
 
-A playbook is provided to bootstrap the K8s cluster with base services ([cert-manager](https://cert-manager.io/), [External Secrets](https://external-secrets.io/), [Longhorn](https://longhorn.io/) and [ArgoCD](argo-cd.readthedocs.io)). To use it, update `Bootstrap` vars with the desired configuration of the services and run:
+A playbook is provided to bootstrap the K8s cluster with base services ([cert-manager](https://cert-manager.io/), [External Secrets](https://external-secrets.io/), [Agent Sandbox](https://agent-sandbox.sigs.k8s.io/), [Longhorn](https://longhorn.io/) and [ArgoCD](argo-cd.readthedocs.io)). To use it, update `Bootstrap` vars with the desired configuration of the services and run:
 
 ```bash
 uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml
@@ -150,6 +150,9 @@ uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml
 # Update specific service
 uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argocd --extra-vars "enable_service_monitors=true"
 ```
+
+Each service has its own `only-*` tag and its values live in `roles/bootstrap/defaults/main/values_<type>.yaml`, while
+`roles/bootstrap/tasks/main.yml` keeps the (order sensitive) list of services to install.
 
 ## Other commands
 

@@ -1,0 +1,11 @@
+---
+- name: kubernetes-reflector - Install chart
+  kubernetes.core.helm:
+    name: kubernetes-reflector
+    chart_ref: emberstack/reflector
+    chart_version: "{{ helm_chart_version['reflector']['version'] }}"
+    create_namespace: true
+    force: "{{ helm_force_update }}"
+    release_namespace: kube-system
+    values: "{{ kubernetes_reflector_helm_values }}"
+    context: "{{ k3s_context_name }}"
