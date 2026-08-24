@@ -25,6 +25,8 @@ longhorn_helm_values:
   metrics:
     serviceMonitor:
       enabled: "{{ enable_service_monitors | bool }}"
+  networkPolicies:
+    restrictInternalTraffic: false
   extraObjects:
     - apiVersion: traefik.io/v1alpha1
       kind: IngressRoute
