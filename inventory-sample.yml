@@ -62,7 +62,7 @@ k3s_cluster:
     # os_upgrade: false # Upgrade the OS before installing K3s
     # k3s_context_name: k3s-ansible
     # api_port: 6443
-    # k3s_location: /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d
+    # k3s_location: /var/lib/rancher/k3s
     # k3s_server_no_schedule: true # No schedule pods by default in the server nodes
     # k3s_gvisor_enabled: true # false to skip the gVisor (runsc) sandbox runtime of the agents. See https://gvisor.dev
     # gvisor_version: latest # gVisor release id, see https://github.com/google/gvisor/releases
