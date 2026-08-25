@@ -11,8 +11,14 @@ api_port: 6443
 
 k3s_agent_role_name: compute
 k3s_gpu_nvidia_enabled: false
+k3s_gvisor_enabled: true
 k3s_server_longhorn_enabled: true
 k3s_agent_longhorn_enabled: true
+
+# Shared by the prereq role (installs the runtime), the k3s_agent role (wires it into
+# containerd and labels the node) and the bootstrap role (RuntimeClass)
+gvisor_runtime_name: runsc
+gvisor_node_label: datahub.local/gvisor
 
 enable_service_monitors: false
 

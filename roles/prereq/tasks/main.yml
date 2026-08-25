@@ -227,3 +227,11 @@
       loop: "{{ extra_manifests }}"
 
 - ansible.builtin.import_tasks: extras.yml
+
+# Sandboxes are never scheduled on the control plane, so the sandbox runtime is
+# only installed on the agents.
+- name: Install the gVisor sandbox runtime
+  ansible.builtin.import_tasks: extra_gvisor.yml
+  when:
+    - k3s_gvisor_enabled
+    - "'agent' in group_names"

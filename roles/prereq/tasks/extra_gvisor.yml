@@ -1,0 +1,66 @@
+---
+# The Agent Sandbox controller only manages the Sandbox lifecycle: the kernel-level
+# isolation it advertises comes from the runtime underneath it. gVisor is the only
+# candidate on this fleet, Kata wants the nested virtualisation the SBCs do not have,
+# while gVisor covers both amd64 and arm64.
+# This only prepares the node: the agent labels itself with datahub.local/gvisor on
+# registration, from the k3s_gvisor_available fact set at the end of this file.
+- name: Install runsc and its containerd shim
+  ansible.builtin.get_url:
+    url: "{{ gvisor_release_url }}/{{ item }}"
+    dest: "{{ bin_dir }}/{{ item }}"
+    checksum: "sha512:{{ gvisor_release_url }}/{{ item }}.sha512"
+    owner: root
+    group: root
+    mode: "u=rwx,g=rx,o=rx"
+  with_items: "{{ gvisor_binaries }}"
+
+# gVisor on the vendor rockchip kernels is not a configuration anyone guarantees,
+# so every node is verified before its containerd is pointed at runsc.
+- name: Check that runsc can start a sandbox on this kernel
+  ansible.builtin.command:
+    cmd: "{{ bin_dir }}/runsc --network=none --platform={{ gvisor_platform }} do /bin/true"
+  register: gvisor_smoke_test
+  changed_when: false
+  failed_when: false
+
+# containerd is embedded in K3s and imports every *.toml of this directory, so the
+# runtime is registered without templating the whole containerd configuration. It is
+# read when the agent starts, which the k3s_agent role does right after this.
+- name: Register the runsc runtime in containerd
+  when: gvisor_smoke_test.rc == 0
+  block:
+    - name: Create the containerd drop-in directory
+      ansible.builtin.file:
+        path: "{{ gvisor_containerd_dropin_dir }}"
+        owner: root
+        group: root
+        mode: 0755
+        state: directory
+
+    - name: Copy the containerd runsc drop-in
+      ansible.builtin.template:
+        src: gvisor.toml.j2
+        dest: "{{ gvisor_containerd_dropin_dir }}/{{ gvisor_containerd_dropin_file }}"
+        owner: root
+        group: root
+        mode: "u=rw,g=r,o=r"
+
+- name: Remove the containerd runsc drop-in
+  when: gvisor_smoke_test.rc != 0
+  ansible.builtin.file:
+    path: "{{ gvisor_containerd_dropin_dir }}/{{ gvisor_containerd_dropin_file }}"
+    state: absent
+
+# Read by the K3s agent service arguments, which label the node when it registers.
+- name: Set the runsc availability of the node
+  ansible.builtin.set_fact:
+    k3s_gvisor_available: "{{ gvisor_smoke_test.rc == 0 }}"
+
+- name: Report a node where runsc does not work
+  when: gvisor_smoke_test.rc != 0
+  ansible.builtin.debug:
+    msg:
+      - "runsc cannot start a sandbox on this node: {{ gvisor_smoke_test.stderr | default('') | trim }}"
+      - "The node is kept out of the {{ gvisor_node_label }} label, so the RuntimeClass will not schedule onto it."
+      - "Set 'k3s_gvisor_enabled: false' for this host in inventory.yml to stop trying."

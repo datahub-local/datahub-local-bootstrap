@@ -56,6 +56,11 @@
   tags: only-external-secrets
   when: "external_secrets_enabled"
 
+- name: gvisor
+  ansible.builtin.import_tasks: security/gvisor.yml
+  tags: only-gvisor
+  when: "gvisor_enabled"
+
 - name: agent-sandbox
   ansible.builtin.import_tasks: security/agent_sandbox.yml
   tags: only-agent-sandbox

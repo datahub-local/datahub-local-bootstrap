@@ -14,6 +14,21 @@ nvidia_debian_repo_components: contrib non-free
 nvidia_driver_packages:
   - "linux-headers-{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
   - nvidia-driver
+# gVisor install, used when k3s_gvisor_enabled is true (agents only). Release ids are
+# published in https://github.com/google/gvisor/releases as release-<id> tags, and
+# "latest" always resolves to the newest one.
+gvisor_version: "20260817.0"
+gvisor_arch: "{{ 'aarch64' if ansible_architecture == 'aarch64' else 'x86_64' }}"
+gvisor_release_url: "https://storage.googleapis.com/gvisor/releases/release/{{ gvisor_version }}/{{ gvisor_arch }}"
+gvisor_binaries:
+  - runsc
+  - containerd-shim-runsc-v1
+# systrap is the only platform available on the whole fleet, the SBCs expose no KVM.
+gvisor_platform: systrap
+# containerd is embedded in K3s and imports every *.toml of this directory, so the
+# runtime is registered without templating the whole containerd config.
+gvisor_containerd_dropin_dir: "{{ k3s_location }}/agent/etc/containerd/config-v3.toml.d"
+gvisor_containerd_dropin_file: gvisor.toml
 etc_hosts_file: /etc/hosts
 extra_volumes: {}
 os_upgrade: false

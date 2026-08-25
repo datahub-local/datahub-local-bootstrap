@@ -1,0 +1,35 @@
+---
+# The handler has to match the containerd runtime registered on the agents by the
+# prereq role, and the nodeSelector the label the agents only register with where
+# runsc was verified to work: a sandbox must stay Pending rather than silently fall
+# back to runc, which is no isolation at all.
+- name: gVisor - Install the RuntimeClass
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: node.k8s.io/v1
+      kind: RuntimeClass
+      metadata:
+        name: "{{ gvisor_runtime_class_name }}"
+      handler: "{{ gvisor_runtime_name }}"
+      scheduling:
+        # A Jinja expression is not templated when used as a YAML key, so the
+        # selector has to be built as a dict.
+        nodeSelector: "{{ {gvisor_node_label: 'true'} }}"
+    context: "{{ k3s_context_name }}"
+
+- name: gVisor - Get the nodes that can run the RuntimeClass
+  kubernetes.core.k8s_info:
+    kind: Node
+    label_selectors:
+      - "{{ gvisor_node_label }}=true"
+    context: "{{ k3s_context_name }}"
+  register: gvisor_nodes
+
+- name: gVisor - Report an unusable RuntimeClass
+  when: gvisor_nodes.resources | length == 0
+  ansible.builtin.debug:
+    msg: >-
+      No node is labelled {{ gvisor_node_label }}=true, so every pod using the
+      {{ gvisor_runtime_class_name }} RuntimeClass stays Pending. Install the runtime
+      with 'uv run ansible-playbook playbook/site.yml -i inventory.yml' first.

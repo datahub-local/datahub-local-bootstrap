@@ -289,9 +289,16 @@ external_secrets_helm_values:
   serviceMonitor:
     enabled: "{{ enable_service_monitors | bool }}"
 
+# https://gvisor.dev - RuntimeClass for the runsc runtime installed on the agents by the
+# prereq role of playbook/site.yml. The Agent Sandbox controller only manages the Sandbox
+# lifecycle, the kernel isolation it advertises comes from this runtime. Its handler and
+# node label live in group_vars/all.yml, shared with that role.
+gvisor_enabled: true
+gvisor_runtime_class_name: gvisor
+
 # https://agent-sandbox.sigs.k8s.io - Sandbox API + controller to run isolated, stateful,
 # singleton workloads such as AI agent runtimes.
-agent_sandbox_enabled: false
+agent_sandbox_enabled: true
 agent_sandbox_repository: "{{ manifest_version['agent-sandbox']['repository'] }}"
 agent_sandbox_version: "{{ manifest_version['agent-sandbox']['version'] }}"
 agent_sandbox_namespace: agent-sandbox-system

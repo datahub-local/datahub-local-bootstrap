@@ -35,4 +35,5 @@ ExecStart={{ bin_dir }}/k3s agent \
               {%- if k3s_agent_longhorn_enabled %} --node-label 'longhorn.io/enabled=true'{% endif %}
               {%- if k3s_agent_role_name %} --node-label 'datahub.local/role={{ k3s_agent_role_name }}'{% endif %}
               {%- if k3s_gpu_nvidia_enabled %} --node-label 'nvidia.com/gpu.present=true'{% endif %}
+              {%- if k3s_gvisor_available | default(false) %} --node-label '{{ gvisor_node_label }}=true'{% endif %}
               {%- if extra_agent_args %} {{ extra_agent_args }}{% endif %}

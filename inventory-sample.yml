@@ -27,6 +27,7 @@ k3s_cluster:
           # required_directories: # Create required directories if needed
           #   - /var/lib/k3s
           # k3s_gpu_nvidia_enabled: false # Enable GPU NVIDIA in the agent
+          # k3s_gvisor_enabled: true # false to skip the gVisor (runsc) sandbox runtime in the agent
           # k3s_agent_longhorn_enabled: true # Enable Longhorn in the agent
         k3s-agent-2:
           ansible_host: 192.0.2.52
@@ -39,6 +40,7 @@ k3s_cluster:
           # required_directories: # Create required directories if needed
           #   - /var/lib/k3s
           # k3s_gpu_nvidia_enabled: false # Enable GPU NVIDIA in the agent
+          # k3s_gvisor_enabled: true # false to skip the gVisor (runsc) sandbox runtime in the agent
           # k3s_agent_longhorn_enabled: true # Enable Longhorn in the agent
 
   # Required Vars
@@ -60,8 +62,10 @@ k3s_cluster:
     # os_upgrade: false # Upgrade the OS before installing K3s
     # k3s_context_name: k3s-ansible
     # api_port: 6443
-    # k3s_location: /var/lib/rancher/k3s
+    # k3s_location: /var/lib/rancher/k3s/agent/etc/containerd/config-v3.toml.d
     # k3s_server_no_schedule: true # No schedule pods by default in the server nodes
+    # k3s_gvisor_enabled: true # false to skip the gVisor (runsc) sandbox runtime of the agents. See https://gvisor.dev
+    # gvisor_version: latest # gVisor release id, see https://github.com/google/gvisor/releases
     # systemd_dir: /etc/systemd/system
     # extra_service_envs: [ 'ENV_VAR1=VALUE1', 'ENV_VAR2=VALUE2' ]
     # # Manifests or Airgap should be either full paths or relative to the playbook directory.
@@ -138,6 +142,9 @@ bootstrap:
     # # No SecretStore/ClusterSecretStore provider is configured by the bootstrap, declare them yourself
     # # afterwards. See https://external-secrets.io/latest/provider/aws-secrets-manager/ and friends.
     # external_secrets_helm_values: # Helm values to configure it. See https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+
+    # gvisor_enabled: true # false if we want to disable the gvisor RuntimeClass. Needs k3s_gvisor_enabled in the nodes.
+    # gvisor_runtime_class_name: gvisor # Name of the RuntimeClass consumed by the sandboxes.
 
     # agent_sandbox_enabled: false # true if we want to install the Agent Sandbox controller. See https://agent-sandbox.sigs.k8s.io
     # agent_sandbox_extensions_enabled: true # false to install only the Sandbox API, without the SandboxTemplate/SandboxClaim/SandboxWarmPool ones.
