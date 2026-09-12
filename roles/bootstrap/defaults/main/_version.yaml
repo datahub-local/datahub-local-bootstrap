@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 10.8.1
+    version: 10.9.0
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -14,7 +14,7 @@ helm_chart_version:
   external-dns:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
-    version: 1.21.1
+    version: 1.22.0
   external-secrets:
     ref: external-secrets/external-secrets
     repository: https://charts.external-secrets.io
@@ -22,11 +22,11 @@ helm_chart_version:
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
-    version: 41.4.0
+    version: 41.5.0
   cert-manager:
     ref: jetstack/cert-manager
     repository: https://charts.jetstack.io
-    version: v1.21.1
+    version: v1.21.2
   longhorn:
     ref: longhorn/longhorn
     repository: https://charts.longhorn.io
@@ -50,7 +50,7 @@ helm_chart_version:
   reloader:
     ref: stakater/reloader
     repository: https://stakater.github.io/stakater-charts
-    version: 2.2.16
+    version: 2.2.17
 
 # Components installed from plain manifests published as GitHub release assets instead of Helm charts.
 manifest_version:
