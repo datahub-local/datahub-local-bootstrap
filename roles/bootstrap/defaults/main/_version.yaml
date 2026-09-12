@@ -56,4 +56,4 @@ helm_chart_version:
 manifest_version:
   agent-sandbox:
     repository: kubernetes-sigs/agent-sandbox
-    version: v1.0.1
+    version: v1.0.2
