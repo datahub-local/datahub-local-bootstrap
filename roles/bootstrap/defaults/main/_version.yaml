@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 10.9.0
+    version: 10.9.2
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -22,7 +22,7 @@ helm_chart_version:
   traefik:
     ref: traefik/traefik
     repository: https://traefik.github.io/charts
-    version: 41.5.0
+    version: 41.6.0
   cert-manager:
     ref: jetstack/cert-manager
     repository: https://charts.jetstack.io
@@ -46,7 +46,7 @@ helm_chart_version:
   snapshot-controller:
     ref: piraeus-charts/snapshot-controller
     repository: https://piraeus.io/helm-charts
-    version: 5.2.0
+    version: 5.3.0
   reloader:
     ref: stakater/reloader
     repository: https://stakater.github.io/stakater-charts
