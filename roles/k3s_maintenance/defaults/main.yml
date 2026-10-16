@@ -2,8 +2,27 @@
 # Prune old Helm release-history secrets (sh.helm.release.v1.<release>.v<N>),
 # keeping only the newest revisions of each release. Requires the API server
 # to be running.
+#
+# One revision, not Helm's default ten. Each retained revision is a Secret holding
+# the whole rendered chart (~0.6-0.9 MB for traefik and argo-cd), and Argo CD's
+# cluster cache has to LIST every Secret in the cluster to build its resource tree.
+# Measured 2026-10-16, on this cluster: ten revisions each of traefik, argo-cd and
+# cert-manager made that list ~30 MB (~140 release Secrets); at that size the
+# kube-apiserver - 2.8 GB RSS on a 4 GB control-plane node - could not stream it,
+# Argo CD logged "failed to load initial state of resource Secret", and all ten
+# Applications sat at sync=Unknown for an hour with no pod unhealthy anywhere.
+# Three revisions was still ~10 MB and a 26 s list, which is the same cliff; one
+# revision is 3.9 MB and 19 s. The rollback target lost here is one helm rollback.
 k3s_maintenance_prune_helm_secrets: true
-k3s_maintenance_helm_history_keep: 3
+k3s_maintenance_helm_history_keep: 1
+
+# Install the daily timer that runs the prune without a human. This is not the only
+# bound on the growth: playbook/bootstrap.yml sets kubernetes.core.helm's history_max,
+# so the charts this repository installs stop accumulating revisions at the source.
+# The timer is what removes history that is already deployed - including anything a
+# hand-run `helm` or `helmfile` leaves behind, which no history_max can reach.
+k3s_maintenance_prune_schedule: true
+k3s_maintenance_prune_on_calendar: "*-*-* 03:20:00"
 
 # VACUUM the kine sqlite datastore and truncate its WAL. The K3s server must
 # be stopped (asserted at runtime). Skipped when the datastore is not sqlite.

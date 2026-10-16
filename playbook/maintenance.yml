@@ -3,6 +3,7 @@
 - name: Prune Helm release-history secrets
   hosts: server[0]
   become: true
+  tags: prune
   roles:
     - role: k3s_maintenance
       vars:
@@ -13,6 +14,7 @@
   hosts: server
   become: true
   serial: 1
+  tags: vacuum
   tasks:
     - name: Stop K3s service
       ansible.builtin.systemd:

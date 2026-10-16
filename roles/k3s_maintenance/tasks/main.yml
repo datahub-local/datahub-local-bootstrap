@@ -3,6 +3,12 @@
   ansible.builtin.include_tasks: prune_helm_secrets.yml
   when: k3s_maintenance_prune_helm_secrets
 
+- name: Schedule the Helm-secret prune
+  ansible.builtin.include_tasks: prune_helm_secrets_timer.yml
+  when:
+    - k3s_maintenance_prune_helm_secrets
+    - k3s_maintenance_prune_schedule
+
 - name: Vacuum kine sqlite datastore
   ansible.builtin.include_tasks: vacuum_db.yml
   when: k3s_maintenance_vacuum_db

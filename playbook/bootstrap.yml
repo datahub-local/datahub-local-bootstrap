@@ -4,5 +4,16 @@
   connection: local
   user: "{{ lookup('env', 'USER') }}"
   gather_facts: false
+  # Helm keeps ten revisions per release by default, each one a Secret holding the whole
+  # rendered chart (~0.6-0.9 MB for traefik and argo-cd). Argo CD has to LIST every Secret
+  # in the cluster to build its cluster cache, so those revisions are what its resource tree
+  # pays for: measured 2026-10-16, ten each of traefik, argo-cd and cert-manager made the
+  # list ~30 MB, the kube-apiserver could not stream it, and every Application went to
+  # sync=Unknown for an hour. Two leaves one `helm rollback` target. Set for every helm call
+  # in this play rather than on each task, because the thirteen chart installs are the same
+  # decision and a per-task copy would drift from the others.
+  module_defaults:
+    kubernetes.core.helm:
+      history_max: 2
   roles:
     - role: bootstrap
