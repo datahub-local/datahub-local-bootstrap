@@ -154,6 +154,56 @@ uv run ansible-playbook playbook/bootstrap.yml -i inventory.yml --tags only-argo
 Each service has its own `only-*` tag and its values live in `roles/bootstrap/defaults/main/values_<type>.yaml`, while
 `roles/bootstrap/tasks/main.yml` keeps the (order sensitive) list of services to install.
 
+## Maintenance
+
+A playbook is provided to keep Helm release history bounded and to vacuum the kine sqlite
+datastore. Helm stores every revision of a release as a Secret holding the whole rendered
+chart (~0.6-0.9 MB for traefik and argo-cd), and ArgoCD has to LIST every Secret in the
+cluster to build its resource tree, so ten revisions per release — Helm's default — is what
+its cache pays for. On 2026-10-16 that list reached ~30 MB, the kube-apiserver could not
+stream it, and all ten Applications sat at `sync=Unknown` for an hour with nothing
+unhealthy in the cluster. The charts installed by `playbook/bootstrap.yml` therefore cap
+their own history at two revisions (`kubernetes.core.helm`'s `history_max`), and this
+playbook prunes what is already deployed — including anything a hand-run `helm` or
+`helmfile` leaves behind, which no `history_max` reaches.
+
+Both halves are tagged, so each is runnable on its own:
+
+```bash
+# Install the daily prune (script + systemd timer) without deleting anything
+uv run ansible-playbook playbook/maintenance.yml -i inventory.yml --tags prune-install
+
+# Prune now, and install the timer if it is not there yet
+uv run ansible-playbook playbook/maintenance.yml -i inventory.yml --tags only-prune
+
+# Prune now only, leaving the installed units alone
+uv run ansible-playbook playbook/maintenance.yml -i inventory.yml --tags prune-run
+
+# Vacuum the kine datastore (stops k3s on each server, one at a time)
+uv run ansible-playbook playbook/maintenance.yml -i inventory.yml --tags only-vacuum
+```
+
+A bare run does both, and the vacuum half stops and starts k3s on every server in turn.
+
+The prune keeps `k3s_maintenance_helm_history_keep` revisions of each release (one, so the
+rollback target it gives up is one `helm rollback`) and is installed as
+`{{ bin_dir }}/k3s-prune-helm-secrets`, run by the playbook and by
+`k3s-prune-helm-secrets.timer` on the first server. The timer runs daily at
+`k3s_maintenance_prune_on_calendar` (03:20 UTC + 5 min jitter, `Persistent=true`), and both
+the schedule and the run itself are set in `roles/k3s_maintenance/defaults/main.yml`.
+
+To confirm the schedule is in place:
+
+```bash
+uv run ansible -i inventory.yml datahublocal-orpi-0 -b -m shell -a "systemctl list-timers k3s-prune-helm-secrets.timer"
+uv run ansible -i inventory.yml datahublocal-orpi-0 -b -m shell -a "systemctl start k3s-prune-helm-secrets.service && journalctl -u k3s-prune-helm-secrets.service -n 5 --no-pager"
+kubectl get secrets -A -l owner=helm -o custom-columns='NS:.metadata.namespace,NAME:.metadata.name'
+```
+
+Note that the prune must run where a kubeconfig resolves: the systemd unit reads
+`/etc/rancher/k3s/k3s.yaml` as root, while an interactive shell on the node may have
+`KUBECONFIG` pointing at a user kubeconfig instead.
+
 ## Other commands
 
 Furthermore, there are other playbook that helps you to manage the cluster:

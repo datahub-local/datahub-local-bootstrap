@@ -1,10 +1,14 @@
 ---
 - name: Prune Helm release-history secrets
   ansible.builtin.include_tasks: prune_helm_secrets.yml
+  tags:
+    - prune-install
+    - prune-run
   when: k3s_maintenance_prune_helm_secrets
 
 - name: Schedule the Helm-secret prune
   ansible.builtin.include_tasks: prune_helm_secrets_timer.yml
+  tags: prune-install
   when:
     - k3s_maintenance_prune_helm_secrets
     - k3s_maintenance_prune_schedule
