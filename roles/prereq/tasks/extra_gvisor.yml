@@ -24,11 +24,33 @@
   changed_when: false
   failed_when: false
 
+# gVisor keeps time from the host TSC: pkg/sentry/time calibrates raw RDTSC and never
+# looks at the clocksource the kernel picked. Firmware that leaves the TSC out of sync
+# across cores (Legion 5 15ACH6H, BIOS GKCN65WW) gets it blacklisted by the kernel, but
+# the sentry still reads it, so CLOCK_MONOTONIC jumps seconds backwards and Node aborts.
+# runsc has no flag to turn that off, hence only register it where the kernel trusts the
+# TSC. Virtualised hosts on kvm-clock fail this too, though their TSC is usable. The k3s
+# agent sets the label only at registration, so a node that regresses afterwards has to
+# be cleaned by hand: kubectl label node <name> datahub.local/gvisor-
+- name: Read the clocksource the kernel trusts
+  when: ansible_architecture == 'x86_64'
+  ansible.builtin.command:
+    cmd: cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+  register: gvisor_host_clocksource
+  changed_when: false
+  failed_when: false
+
+- name: Check that the host TSC can keep time
+  ansible.builtin.set_fact:
+    gvisor_tsc_usable: >-
+      {{ ansible_architecture != 'x86_64'
+         or (gvisor_host_clocksource.stdout | default('') | trim) == 'tsc' }}
+
 # containerd is embedded in K3s and imports every *.toml of this directory, so the
 # runtime is registered without templating the whole containerd configuration. It is
 # read when the agent starts, which the k3s_agent role does right after this.
 - name: Register the runsc runtime in containerd
-  when: gvisor_smoke_test.rc == 0
+  when: gvisor_smoke_test.rc == 0 and (gvisor_tsc_usable | bool)
   block:
     - name: Create the containerd drop-in directory
       ansible.builtin.file:
@@ -47,7 +69,7 @@
         mode: "u=rw,g=r,o=r"
 
 - name: Remove the containerd runsc drop-in
-  when: gvisor_smoke_test.rc != 0
+  when: gvisor_smoke_test.rc != 0 or not (gvisor_tsc_usable | bool)
   ansible.builtin.file:
     path: "{{ gvisor_containerd_dropin_dir }}/{{ gvisor_containerd_dropin_file }}"
     state: absent
@@ -55,12 +77,18 @@
 # Read by the K3s agent service arguments, which label the node when it registers.
 - name: Set the runsc availability of the node
   ansible.builtin.set_fact:
-    k3s_gvisor_available: "{{ gvisor_smoke_test.rc == 0 }}"
+    k3s_gvisor_available: "{{ gvisor_smoke_test.rc == 0 and (gvisor_tsc_usable | bool) }}"
 
 - name: Report a node where runsc does not work
-  when: gvisor_smoke_test.rc != 0
+  when: not (k3s_gvisor_available | bool)
   ansible.builtin.debug:
     msg:
-      - "runsc cannot start a sandbox on this node: {{ gvisor_smoke_test.stderr | default('') | trim }}"
+      - >-
+        {{ 'The kernel does not use the TSC on this node (clocksource '
+           ~ (gvisor_host_clocksource.stdout | default('unknown') | trim)
+           ~ '), so gVisor guest time would jump.'
+           if not (gvisor_tsc_usable | bool)
+           else 'runsc cannot start a sandbox on this node: '
+                ~ (gvisor_smoke_test.stderr | default('') | trim) }}
       - "The node is kept out of the {{ gvisor_node_label }} label, so the RuntimeClass will not schedule onto it."
       - "Set 'k3s_gvisor_enabled: false' for this host in inventory.yml to stop trying."
