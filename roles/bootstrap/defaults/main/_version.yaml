@@ -2,7 +2,7 @@ helm_chart_version:
   argo-cd:
     ref: argo/argo-cd
     repository: https://argoproj.github.io/argo-helm
-    version: 10.11.1
+    version: 10.11.6
   dex:
     ref: dex/dex
     repository: https://charts.dexidp.io
@@ -10,7 +10,7 @@ helm_chart_version:
   reflector:
     ref: emberstack/reflector
     repository: https://emberstack.github.io/helm-charts
-    version: 10.0.65
+    version: 10.0.68
   external-dns:
     ref: external-dns/external-dns
     repository: https://kubernetes-sigs.github.io/external-dns
