@@ -159,3 +159,5 @@ traefik_helm_values:
 external_dns_secret_name:
 external_dns_secret_data:
 external_dns_helm_values:
+  # Required since chart 1.22; upsert-only was the chart default before.
+  policy: upsert-only
