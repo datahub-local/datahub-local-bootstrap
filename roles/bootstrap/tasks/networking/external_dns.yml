@@ -13,5 +13,6 @@
     create_namespace: true
     force: "{{ helm_force_update }}"
     release_namespace: kube-system
-    values: "{{ external_dns_helm_values }}"
+    # Chart >=1.22 requires `policy`; inventory overrides replace the whole dict, so default it here.
+    values: "{{ {'policy': 'upsert-only'} | combine(external_dns_helm_values | default({}, true)) }}"
     context: "{{ k3s_context_name }}"
