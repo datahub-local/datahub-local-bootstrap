@@ -20,6 +20,4 @@ k3s_agent_longhorn_enabled: true
 gvisor_runtime_name: runsc
 gvisor_node_label: datahub.local/gvisor
 
-enable_service_monitors: false
-
 drain_nodes: false

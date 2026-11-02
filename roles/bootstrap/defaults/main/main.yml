@@ -4,3 +4,7 @@ k3s_context_name: k3s-ansible
 helm_force_update: false
 
 gateway_hostname: ""
+
+# Role default (lowest precedence) so the inventory can turn it on; off unless a
+# Prometheus is installed.
+enable_service_monitors: false
