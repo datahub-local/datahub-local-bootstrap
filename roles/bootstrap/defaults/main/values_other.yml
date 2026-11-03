@@ -298,7 +298,9 @@ argocd_helm_values:
             PARAMS+=(-e $ARGOCD_ENV_ENV_NAME)
           fi
 
-          PREFIX_FILE="/tmp/helmfile_${ARGOCD_APP_NAME}_$(date +'%Y%m%d%H%M')"
+          # $$ is required: ArgoCD runs concurrent refreshes of one app, and a shared
+          # output path leaves a sparse hole of NULs that ArgoCD rejects as control characters.
+          PREFIX_FILE="/tmp/helmfile_${ARGOCD_APP_NAME}_$(date +'%Y%m%d%H%M')_$$"
           LOG_FILE="${PREFIX_FILE}.log"
           YAML_FILE="${PREFIX_FILE}.yaml"
 
